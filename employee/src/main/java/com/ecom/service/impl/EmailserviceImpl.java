@@ -54,7 +54,9 @@ public class EmailserviceImpl implements EmailService {
 
 	public String sendPasswordResetEmail(String toEmail) {
 
-		User user = userdao.findByEmail(toEmail);
+		Optional<User> userobj = userdao.findByEmail(toEmail);
+		
+		User user=userobj.get();
 		if (user == null) {
 			return "UNF";
 		}
@@ -85,7 +87,10 @@ public class EmailserviceImpl implements EmailService {
 
 	public boolean resetPassword(String email, String newPassword) {
 		try {
-			User user = userdao.findByEmail(email);
+		
+			Optional<User> userobj = userdao.findByEmail(email);
+			
+			User user=userobj.get();
 			if (user == null) {
 				System.err.println("user not found");
 				return false;

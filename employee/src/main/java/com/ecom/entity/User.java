@@ -41,13 +41,17 @@ public class User {
 	
 
 	@Column(nullable = false)
-	private String gender;
+	@Enumerated(EnumType.STRING)
+	private Gender gender;
  
 	@Column(nullable = false)
 	private String address;
  
-	@Column(name = "profile_image")
-	private  byte[] profileImage;
+//	@Column(name = "profile_image")
+//	private  byte[] profileImage;
+	
+	
+	private String imageUuid;
  
 	@Column(name = "contact_number", nullable = false)
 	private String contactNumber;

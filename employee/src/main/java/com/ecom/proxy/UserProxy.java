@@ -54,15 +54,17 @@ public class UserProxy {
 	private String email;
 
 	@NotNull(message = "Gender is required")
-	@Enumerated(EnumType.STRING)
+//	@Enumerated(EnumType.STRING)
 	private String gender;
 
 	@NotBlank(message = "Address is required")
 	private String address;
 
-	@Lob
-	@Column(name = "profile_image", columnDefinition = "BLOB")
-	private byte[] profileImage;
+//	@Lob
+//	@Column(name = "profile_image", columnDefinition = "BLOB")
+//	private byte[] profileImage;
+	
+	private String imageUuid;
 
 	@NotBlank(message = "Contact number is required")
 	@Pattern(regexp = "^[0-9]{10}$", message = "Contact number must be 10 digits")

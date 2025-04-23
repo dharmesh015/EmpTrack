@@ -7,15 +7,11 @@ import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { AuthGuard } from './_auth/auth.guard';
 
-// import { ProductDisplayComponent } from './product-display-component/product-display-component.component';
-
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
-import { HomepageComponent } from './homepage/homepage.component';
 import { AdminProfileComponent } from './admin-profile/admin-profile.component';
 
 const routes: Routes = [
-  // import { AppRoutingModule } from './app-routing.module';
   { path: 'home', component: HomeComponent },
 
   {
@@ -31,14 +27,12 @@ const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
 
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'profile', component: AdminProfileComponent }, 
-  { path: 'homepage', component: HomepageComponent },
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: 'profile', component: AdminProfileComponent },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', component: ForbiddenComponent },
 ];
 
 @NgModule({
-  // exports: [RouterModule],
   imports: [
     RouterModule.forRoot(routes, {
       scrollPositionRestoration: 'enabled',

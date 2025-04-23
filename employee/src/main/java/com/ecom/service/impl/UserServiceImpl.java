@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ecom.configuration.enums.Gender;
 import com.ecom.dao.RoleDao;
 import com.ecom.dao.UserDao;
 import com.ecom.entity.Role;
@@ -41,31 +42,41 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private EmailService emailservice;
 
-
-
-	public String registerNewUser(UserProxy usero) {
-		System.out.println("username--"+usero.getUserName());
-		if (userDao.findByUserName(usero.getUserName()).isPresent()) {
-			System.err.println("User NameExist");
-			return "UserNameExist";
-		}
-
-	
-		usero.setId(null);
-		User user = mapper.convertValue(usero, User.class);
-
-		user.setPassword(getEncodedPassword(user.getPassword()));
-
-		User savedUser = userDao.save(user);
-
-		Role role = roleDao.findById("USER").orElseThrow(() -> new RuntimeException("Role not found"));
-		Set<Role> userRoles = new HashSet<>();
-		userRoles.add(role);
-		savedUser.setRole(userRoles);
-
-		User userobj = userDao.save(savedUser);
-		return "register";
-	}
+//	public String registerNewUser(UserProxy usero) {
+//		System.out.println("username--" + usero.getUserName());
+//		if (userDao.findByUserName(usero.getUserName()).isPresent()) {
+//			System.err.println("User NameExist");
+//			return "UserNameExist";
+//		}
+//		if (userDao.findByEmail(usero.getEmail()).isPresent()) {
+//			System.err.println("EmailExist");
+//			return "EmailExist";
+//		}
+//
+//		usero.setId(null);
+//
+//		User user = mapper.convertValue(usero, User.class);
+//		try {
+//			// Convert using the exact case that matches your enum
+//			Gender gender = Gender.valueOf(usero.getGender().toUpperCase());
+//			System.out.println("Converted gender: " + gender);
+//			user.setGender(gender);
+//		} catch (IllegalArgumentException e) {
+//			System.err.println("Invalid gender value: " + usero.getGender());
+//			return "InvalidGender";
+//		}
+//		user.setPassword(getEncodedPassword(user.getPassword()));
+//
+//		User savedUser = userDao.save(user);
+//
+//		Role role = roleDao.findById("USER").orElseThrow(() -> new RuntimeException("Role not found"));
+//		Set<Role> userRoles = new HashSet<>();
+//		userRoles.add(role);
+//		savedUser.setRole(userRoles);
+//
+//		User userobj = userDao.save(savedUser);
+//		return "register";
+//	}
 
 	public String getEncodedPassword(String password) {
 		return passwordEncoder.encode(password);
@@ -81,6 +92,43 @@ public class UserServiceImpl implements UserService {
 
 		userDao.save(byUserName);
 
-
+	}
+	
+	@Override
+	public String registerNewUser(UserProxy usero) {
+	    System.out.println("username--" + usero.getUserName());
+	    if (userDao.findByUserName(usero.getUserName()).isPresent()) {
+	        System.err.println("User NameExist");
+	        return "UserNameExist";
+	    }
+	    if (userDao.findByEmail(usero.getEmail()).isPresent()) {
+	        System.err.println("EmailExist");
+	        return "EmailExist";
+	    }
+	    usero.setId(null);
+	    User user = mapper.convertValue(usero, User.class);
+	    try {
+	        // Convert using the exact case that matches your enum
+	        Gender gender = Gender.valueOf(usero.getGender().toUpperCase());
+	        System.out.println("Converted gender: " + gender);
+	        user.setGender(gender);
+	    } catch (IllegalArgumentException e) {
+	        System.err.println("Invalid gender value: " + usero.getGender());
+	        return "InvalidGender";
+	    }
+	    
+	    // Set the image UUID if available
+	    if (usero.getImageUuid() != null && !usero.getImageUuid().isEmpty()) {
+	        user.setImageUuid(usero.getImageUuid());
+	    }
+	    
+	    user.setPassword(getEncodedPassword(user.getPassword()));
+	    User savedUser = userDao.save(user);
+	    Role role = roleDao.findById("USER").orElseThrow(() -> new RuntimeException("Role not found"));
+	    Set<Role> userRoles = new HashSet<>();
+	    userRoles.add(role);
+	    savedUser.setRole(userRoles);
+	    User userobj = userDao.save(savedUser);
+	    return "register";
 	}
 }

@@ -23,7 +23,6 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Subscribe to auth state changes
     this.userAuthService.loggedIn$.subscribe(isLoggedIn => {
       this.isLoggedInflag = isLoggedIn;
       this.cdRef.detectChanges();
@@ -31,10 +30,10 @@ export class HeaderComponent implements OnInit {
     this.updateLoginStatus();
   }
 
-  // Update login status
+
   private updateLoginStatus(): void {
     this.isLoggedInflag = this.userAuthService.isLoggedIn();
-    this.cdRef.detectChanges(); // Force view update
+    this.cdRef.detectChanges(); 
   }
 
   toggleMenu(): void {
@@ -53,12 +52,12 @@ export class HeaderComponent implements OnInit {
 
   public logout() {
     this.userAuthService.clear();
-    this.isLoggedInflag = false; // Update local flag
-    this.router.navigate(['/home']);
+    this.isLoggedInflag = false; 
+    this.router.navigate(['/login']);
   }
 
   public isLoggedIn(): boolean {
-    return this.isLoggedInflag; // Use the local flag
+    return this.isLoggedInflag; 
   }
 
   public roleMatchs(rol: any): boolean {

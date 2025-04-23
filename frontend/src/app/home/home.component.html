@@ -1,0 +1,153 @@
+<!-- home.component.html -->
+<div class="dashboard-container">
+    <!-- Hero Section with Animated Background -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1 class="animated-title">User Management Hub</h1>
+        <p class="tagline">Powerful control. Seamless experience.</p>
+        <div class="action-buttons">
+          <button mat-raised-button class="gradient-button primary-action">
+            <mat-icon>rocket_launch</mat-icon>
+            Get Started
+          </button>
+          <button mat-button class="outline-button">
+            <mat-icon>lightbulb</mat-icon>
+            Tour Features
+          </button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orbit-container">
+          <div class="center-circle"></div>
+          <div class="orbit">
+            <div class="avatar-small" *ngFor="let i of [1,2,3,4,5]"
+                 [style.transform]="'rotate(' + (i * 72) + 'deg) translateX(120px)'">
+              <div class="avatar-content" [style.transform]="'rotate(-' + (i * 72) + 'deg)'">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Stats Section with Interactive Cards -->
+    <div class="stats-row">
+      <div class="stat-card users-card" (mouseenter)="activeCard = 'users'" (mouseleave)="activeCard = ''">
+        <div class="stat-icon">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-data">
+          <div class="counter">{{totalUsers || 0}}</div>
+          <div class="stat-label">TOTAL USERS</div>
+        </div>
+        <div class="stat-details" [class.active]="activeCard === 'users'">
+          <div class="detail-item">
+            <div class="detail-label">Active</div>
+            <div class="detail-value">{{activeUsers || 0}}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Inactive</div>
+            <div class="detail-value">{{inactiveUsers || 0}}</div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="stat-card admins-card" (mouseenter)="activeCard = 'admins'" (mouseleave)="activeCard = ''">
+        <div class="stat-icon">
+          <mat-icon>security</mat-icon>
+        </div>
+        <div class="stat-data">
+          <div class="counter">{{adminCount || 0}}</div>
+          <div class="stat-label">ADMINS</div>
+        </div>
+        <div class="stat-details" [class.active]="activeCard === 'admins'">
+          <div class="detail-item">
+            <div class="detail-label">Super Admins</div>
+            <div class="detail-value">{{superAdmins || 0}}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Moderators</div>
+            <div class="detail-value">{{moderators || 0}}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card activity-card" (mouseenter)="activeCard = 'activity'" (mouseleave)="activeCard = ''">
+        <div class="stat-icon">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="stat-data">
+          <div class="counter">{{activityCount || 0}}</div>
+          <div class="stat-label">ACTIVITIES</div>
+        </div>
+        <div class="stat-details" [class.active]="activeCard === 'activity'">
+          <div class="detail-item">
+            <div class="detail-label">Today</div>
+            <div class="detail-value">{{todayActivities || 0}}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">This Week</div>
+            <div class="detail-value">{{weekActivities || 0}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Activity Timeline -->
+    <div class="timeline-section">
+      <h2 class="section-title">Recent Activity</h2>
+      
+      <div class="timeline">
+        <div class="timeline-item" *ngFor="let activity of recentActivities; let i = index"
+             [class.right]="i % 2 !== 0" 
+             [class.left]="i % 2 === 0">
+          <div class="timeline-content">
+            <div class="timeline-time">{{activity.time}}</div>
+            <div class="timeline-icon" [ngClass]="activity.iconClass">
+              <mat-icon>{{activity.icon}}</mat-icon>
+            </div>
+            <h3 class="timeline-title">{{activity.action}}</h3>
+            <p class="timeline-desc">{{activity.description}}</p>
+            <div class="timeline-user">
+              <div class="user-avatar">{{activity.by.charAt(0)}}</div>
+              <div class="user-name">{{activity.by}}</div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="timeline-line"></div>
+      </div>
+    </div>
+  
+    <!-- Quick Actions Panel -->
+    <div class="quick-actions">
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="actions-grid">
+        <div class="action-item" routerLink="/admin">
+          <div class="action-icon">
+            <mat-icon>group_add</mat-icon>
+          </div>
+          <div class="action-label">Manage Users</div>
+        </div>
+        <div class="action-item" (click)="openAddUserDialog()">
+          <div class="action-icon">
+            <mat-icon>person_add</mat-icon>
+          </div>
+          <div class="action-label">Add User</div>
+        </div>
+        <div class="action-item" routerLink="/reports">
+          <div class="action-icon">
+            <mat-icon>assessment</mat-icon>
+          </div>
+          <div class="action-label">View Reports</div>
+        </div>
+        <div class="action-item" routerLink="/settings">
+          <div class="action-icon">
+            <mat-icon>settings</mat-icon>
+          </div>
+          <div class="action-label">Settings</div>
+        </div>
+      </div>
+    </div>
+  </div>

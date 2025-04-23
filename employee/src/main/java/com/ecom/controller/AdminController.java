@@ -43,15 +43,16 @@ public class AdminController {
 	@Autowired
 	private MapperUtil mapper;
 
-//	
+	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/getAllUsersPageWise")
 	public Page<UserProxy> getAlluser(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
+	System.out.println("reach");
 		PageRequest pageable = PageRequest.of(page, size);
 		return adminservice.getAllUsersPageWise(pageable);
 	}
 
-//	
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/deleteUser/{userName}")
 	public ResponseEntity<Void> deleteUserByUserName(@PathVariable("userName") String userName) {
 		System.err.println("delete controller--" + userName);
@@ -59,12 +60,13 @@ public class AdminController {
 		return ResponseEntity.noContent().build();
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/updateUser")
 	public String updateUser(@RequestBody UserProxy userProxy) {
 		return adminservice.updateUser(userProxy);
 	}
 
-
+	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/getuser/{name}")
 	public UserProxy getUser(@PathVariable("name") String name) {
 		return adminservice.getuser(name);

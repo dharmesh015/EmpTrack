@@ -1,1 +1,78 @@
-<p>admin-profile works!</p>
+<div class="profile-container">
+  <div *ngIf="loading" class="loading">Loading profile data...</div>
+
+  <div *ngIf="error" class="error-message">
+    Error loading profile. Please try again later.
+  </div>
+
+  <div *ngIf="!loading && !error" class="profile-card">
+    <div class="profile-header">
+      <div class="profile-image-container">
+
+        <div class="user-avatar" *ngIf="user.imageUuid; else initialsAvatar">
+          <a routerLink=""></a>
+          <img
+            [src]="getImageUrl(user.imageUuid)"
+            class="rounded-circle"
+            width="50"
+            height="50"
+            alt="Profile"
+            (error)="(user.imageUuid == null)"
+            class="profile-image"
+          />
+        </div>
+      </div>
+      <h2 class="user-name">{{ user.name }}</h2>
+    </div>
+    <ng-template #initialsAvatar>
+      <div
+        class="user-avatar-initials"
+        [style.background-color]="getProfileColor(user.userName || user.name)"
+      >
+        {{ getInitials(user.userName || user.name) }}
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="profile-details">
+    <div class="detail-row">
+      <span class="label">Username:</span>
+      <span class="value">{{ user.userName }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Email:</span>
+      <span class="value">{{ user.email }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Date of Birth:</span>
+      <span class="value">{{ user.dob }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Gender:</span>
+      <span class="value">{{ user.gender }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Contact Number:</span>
+      <span class="value">{{ user.contactNumber }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Address:</span>
+      <span class="value">{{ user.address }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Pin Code:</span>
+      <span class="value">{{ user.pinCode }}</span>
+    </div>
+  </div>
+
+  <div class="profile-actions">
+    <button class="edit-button">Edit Profile</button>
+  </div>
+</div>
+>

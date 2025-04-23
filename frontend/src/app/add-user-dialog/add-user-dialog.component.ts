@@ -2,8 +2,8 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../_service/user.service';
-import { Registrationuser } from '../modul/registrationuser';
 import Swal from 'sweetalert2';
+import { UserDetailsProxy } from '../modul/user-details-proxy';
 
 @Component({
   selector: 'app-add-user-dialog',
@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
 })
 export class AddUserDialogComponent {
   form!: FormGroup;
-  userData: Registrationuser = new Registrationuser();
+  userData: UserDetailsProxy = new UserDetailsProxy();
   
   constructor(
     public dialogRef: MatDialogRef<AddUserDialogComponent>,

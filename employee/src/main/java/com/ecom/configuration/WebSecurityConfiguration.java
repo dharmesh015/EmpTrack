@@ -41,8 +41,8 @@ public class WebSecurityConfiguration {
 		http.cors();
 		http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/authenticate", "/createNewRole", "/HttpMethod.OPTIONS", "/registerNewUser",
-								 "/send-email", "/reset-password/**",
+						.requestMatchers("/authenticate", "/createNewRole", "/HttpMethod.OPTIONS", "/registerNewUser","/registerWithImage",
+								 "/send-email", "/reset-password/**","/user-image/**",
 								"/validate-token/**","/captcha")
 						.permitAll().requestMatchers(HttpHeaders.ALLOW).permitAll().anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))

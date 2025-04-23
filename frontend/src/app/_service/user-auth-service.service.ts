@@ -1,6 +1,5 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Registrationuser } from '../modul/registrationuser';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -45,11 +44,7 @@ export class UserAuthServiceService {
     }
     return [];
   }
-  // public setToken(jwtToken: string): void {
-  //   if (this.isBrowser()) {
-  //     sessionStorage.setItem('jwtToken', jwtToken);
-  //   }
-  // }
+ 
   public setToken(jwtToken: string): void {
     if (this.isBrowser()) {
       sessionStorage.setItem('jwtToken', jwtToken);

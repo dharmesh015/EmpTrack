@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { UserService } from '../_service/user.service';
-import { Registrationuser } from '../modul/registrationuser';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { UserDetailsProxy } from '../modul/user-details-proxy';
 
 @Component({
   selector: 'app-view',
@@ -11,7 +11,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 })
 export class ViewComponent implements OnInit {
   userName: string;
-  userData: Registrationuser = new Registrationuser();
+  userData: UserDetailsProxy = new UserDetailsProxy();
   loading = true;
   error = false;
 

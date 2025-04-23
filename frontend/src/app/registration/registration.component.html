@@ -1,7 +1,7 @@
 <section class="background-radial-gradient overflow-hidden">
   <div class="row gx-lg-5 align-items-center mb-5">
     <div class="col-lg-6 mb-5 mb-lg-0 intro-section">
-      <div class="intro-badge">Welcome to opl</div>
+      <div class="intro-badge">Welcome to OPL</div>
       <h1 class="my-3 display-3 fw-bold ls-tight">
         Create Your Account<br />
         <span class="text-primary">Join us today!</span>
@@ -137,7 +137,7 @@
 
       <div class="card bg-glass">
         <div class="card-header">
-          <div class="brand-logo">opl</div>
+          <div class="brand-logo">OPL</div>
           <p class="mb-0">Create your account to get started</p>
         </div>
         <div class="card-body px-4 py-4 px-md-5">
@@ -148,6 +148,23 @@
           >
             <div class="form-scrollable">
               <!-- Full Name -->
+
+              <div class="form-outline mb-4">
+                <label class="form-label" for="profileImage">Profile Image</label>
+                <input
+                  type="file"
+                  id="profileImage"
+                  class="form-control"
+                  (change)="onFileSelected($event)"
+                  accept="image/*"
+                  #profileImage="ngModel"
+                  ngModel
+                  name="profileImage"
+                />
+                <div class="mt-2" *ngIf="selectedFile">
+                  <small>Selected file: {{selectedFile.name}}</small>
+                </div>
+              </div>
               <div class="form-outline mb-4">
                 <input
                   type="text"
@@ -238,40 +255,28 @@
                     class="form-check-input"
                     type="radio"
                     id="male"
-                    value="male"
+                    value="MALE"
                     name="gender"
                     ngModel
                     required
                     #gender="ngModel"
                   />
-                  <label class="form-check-label" for="male">Male</label>
+                  <label class="form-check-label" for="male">MALE</label>
                 </div>
                 <div class="form-check">
                   <input
                     class="form-check-input"
                     type="radio"
                     id="female"
-                    value="female"
+                    value="FEMALE"
                     name="gender"
                     ngModel
                     required
                     #gender="ngModel"
                   />
-                  <label class="form-check-label" for="female">Female</label>
+                  <label class="form-check-label" for="female">FEMALE</label>
                 </div>
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    id="other"
-                    value="other"
-                    name="gender"
-                    ngModel
-                    required
-                    #gender="ngModel"
-                  />
-                  <label class="form-check-label" for="other">Other</label>
-                </div>
+                
                 <div *ngIf="gender.invalid && gender.touched" class="error">
                   <div *ngIf="gender.errors?.['required']">
                     Gender selection is required
@@ -390,7 +395,7 @@
                 >
                   <option value="" disabled selected>Select your role</option>
                   <option value="user">User</option>
-                  <option value="seller">Admin</option>
+                
                 </select>
                 <div *ngIf="role.invalid && role.touched" class="error">
                   <div *ngIf="role.errors?.['required']">

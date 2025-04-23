@@ -18,6 +18,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 
@@ -50,7 +51,9 @@ public class TokenServiceImpl implements TokenService {
 			Claims claims = Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
 
 			String email = claims.getSubject();
-			User user = userdao.findByEmail(email);
+			Optional<User> userobj = userdao.findByEmail(email);
+			
+			User user=userobj.get();
 			if (!user.getPassword().equals(claims.get("purpose"))) {
 				return null;
 			}

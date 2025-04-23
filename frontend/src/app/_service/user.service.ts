@@ -4,10 +4,9 @@ import { NgForm } from '@angular/forms';
 import { catchError, map, Observable } from 'rxjs';
 import { Requestuser } from '../modul/requestuser';
 import { UserAuthServiceService } from './user-auth-service.service';
-import { Registrationuser } from '../modul/registrationuser';
-import { userdata } from '../modul/userdata';
-// import { Requestuser } from '../modul/requestuser';
 
+import { UserDetailsProxy } from '../modul/user-details-proxy';
+;
 
 @Injectable({
   providedIn: 'root',
@@ -43,12 +42,17 @@ export class UserService {
     return false;
   }
 
-  public register(data: Registrationuser): Observable<string> {
+  public register(data: UserDetailsProxy): Observable<string> {
     console.log('Sending Data: ' + JSON.stringify(data));
     return this.httpclient
       .post(this.apiUrl + '/registerNewUser ', data, { responseType: 'text' })
       .pipe(map((response) => response as string));
   }
+
+  registerWithImage(formData: FormData): Observable<string> {
+    return this.httpclient.post(`${this.apiUrl}/registerWithImage`, formData,{ responseType: 'text' }).pipe(map((response) => response as string));
+  }
+
   public getuser(): Observable<any> {
     const token = this.userAuthService.getToken();
     return this.httpclient
@@ -57,6 +61,7 @@ export class UserService {
       })
       .pipe(map((response) => response as string));
   }
+
   sendEmail(email: string): Observable<string> {
     return this.httpclient
       .post(
@@ -80,32 +85,24 @@ export class UserService {
     return this.httpclient.get(`${this.apiUrl}/validate-token/${token}`);
   }
 
-  getAllUsers(): Observable<userdata[]> {
-    console.log('service');
-    return this.httpclient.get<userdata[]>(`${this.apiUrl}/admin/getAlluser`);
-  }
+ 
 
-  getAllUsersPageWise(page: number, size: number): Observable<any> {
-    return this.httpclient.get(
-      `${this.apiUrl}/getAllUsersPageWise?page=${page}&size=${size}`
-    );
-  }
+ 
 
   deleteUser(name: String): any {
     console.log('service' + name);
     return this.httpclient.delete(`${this.apiUrl}/deleteUser/${name}`);
   }
 
-  public update(data: Registrationuser) {
+  public update(data: UserDetailsProxy) {
     console.log('Sending Datadsd: ' + JSON.stringify(data));
     return this.httpclient
       .put(this.apiUrl + '/updateUser', data, { responseType: 'text' })
       .pipe(map((response) => response as string));
   }
 
-  //
-  getUserByName(name: String): Observable<Registrationuser> {
-    return this.httpclient.get<Registrationuser>(
+  getUserByName(name: String): Observable<UserDetailsProxy> {
+    return this.httpclient.get<UserDetailsProxy>(
       `${this.apiUrl}/getuser/${name}`
     );
   }
@@ -137,5 +134,21 @@ export class UserService {
       withCredentials: true,
     });
   }
- 
+
+
+  getAllUsers(): Observable<any[]> {
+    return this.httpclient.get<any[]>(`${this.apiUrl}/users`);
+  }
+
+  getAllUsersPageWise(page: number, size: number): Observable<any> {
+    return this.httpclient.get(
+      `${this.apiUrl}/getAllUsersPageWise?page=${page}&size=${size}`
+    );
+  }
+
+  getImageUrl(imageUuid: string): string {
+    return `${this.apiUrl}/user-image/${imageUuid}`;
+  }
+  
+  
 }
