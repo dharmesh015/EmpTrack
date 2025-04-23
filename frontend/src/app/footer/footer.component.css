@@ -1,0 +1,110 @@
+.divider:after,
+.divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+ 
+.h-custom {
+  height: calc(100% - 73px);
+}
+ 
+@media (max-width: 450px) {
+  .h-custom {
+    height: 100%;
+  }
+}
+ 
+/* Media Queries for smaller devices */
+@media (max-width: 992px) {
+  /* For screens between 600px and 800px */
+  .footer {
+    margin-top: 50px; /* Reduce the gap between footer and content */
+    padding: 15px 0;
+  }
+ 
+  .h-custom {
+    height: auto;
+  }
+ 
+  .container {
+    min-height: 100%;
+  }
+ 
+  /* Adjust footer layout */
+  .footer .row {
+    flex-direction: column;
+  }
+}
+ 
+@media (max-width: 600px) {
+  /* For screens smaller than 600px */
+  .footer {
+    margin-top: 20px;
+    padding: 10px 0;
+  }
+ 
+  .h-custom {
+    height: auto;
+  }
+ 
+  .footer .container {
+    padding: 0 10px;
+  }
+ 
+  .footer .col-md-3,
+  .footer .col-md-2 {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+ 
+  .footer .col-md-4 {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+}
+ 
+.error {
+  color: red;
+  font-size: 0.875rem;
+  border-radius: 5px;
+  margin-top: 5px;
+  padding-left: 5px;
+  background-color: rgb(253, 226, 226);
+}
+ 
+button:disabled {
+  cursor: not-allowed;
+  /* Display the not-allowed cursor */
+  background-color: gray;
+  border-color: gray;
+  opacity: 0.6;
+  /* Optional: Make the disabled button look less prominent */
+}
+ 
+/* Change color of all Font Awesome icons in footer */
+.footer .fab {
+  color: #ffffff; /* White color for icons */
+}
+ 
+/* Hover effect to change icon color */
+.footer .fab:hover {
+  color: #ff6347; /* Change color on hover (Tomato red) */
+}
+ 
+/* Customize individual icon colors if needed */
+.footer .fab.fa-facebook-f {
+  color: #3b5998; /* Facebook blue */
+}
+ 
+.footer .fab.fa-twitter {
+  color: #1da1f2; /* Twitter blue */
+}
+ 
+.footer .fab.fa-instagram {
+  color: #e4405f; /* Instagram red-pink */
+}
+.text{
+  font-size: 15px;
+}

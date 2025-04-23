@@ -1,0 +1,153 @@
+<h2 mat-dialog-title>Update User</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Full Name</mat-label>
+      <input matInput formControlName="name" required />
+      <mat-error
+        *ngIf="
+          form.get('name')?.hasError('required') &&
+          form.get('name')?.touched
+        "
+      >
+        Full Name is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Date of Birth</mat-label>
+      <input matInput type="date" formControlName="dob" required />
+      <mat-error
+        *ngIf="
+          form.get('dob')?.hasError('required') &&
+          form.get('dob')?.touched
+        "
+      >
+        Date of Birth is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Username</mat-label>
+      <input matInput formControlName="userName" required readonly />
+      <mat-error
+        *ngIf="
+          form.get('userName')?.hasError('required') &&
+          form.get('userName')?.touched
+        "
+      >
+        Username is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" required />
+      <mat-error
+        *ngIf="
+          form.get('email')?.hasError('required') && form.get('email')?.touched
+        "
+      >
+        Email is required
+      </mat-error>
+      <mat-error
+        *ngIf="
+          form.get('email')?.hasError('email') && form.get('email')?.touched
+        "
+      >
+        Enter a valid email
+      </mat-error>
+    </mat-form-field>
+
+    <div class="gender-section">
+      <label>Gender</label>
+      <mat-radio-group formControlName="gender" required>
+        <mat-radio-button value="male">Male</mat-radio-button>
+        <mat-radio-button value="female">Female</mat-radio-button>
+        <mat-radio-button value="other">Other</mat-radio-button>
+      </mat-radio-group>
+      <mat-error
+        *ngIf="
+          form.get('gender')?.hasError('required') &&
+          form.get('gender')?.touched
+        "
+      >
+        Gender selection is required
+      </mat-error>
+    </div>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Contact Number</mat-label>
+      <input
+        matInput
+        formControlName="contactNumber"
+        required
+        pattern="^[0-9]{10}$"
+      />
+      <mat-error
+        *ngIf="
+          form.get('contactNumber')?.hasError('required') &&
+          form.get('contactNumber')?.touched
+        "
+      >
+        Contact Number is required
+      </mat-error>
+      <mat-error
+        *ngIf="
+          form.get('contactNumber')?.hasError('pattern') &&
+          form.get('contactNumber')?.touched
+        "
+      >
+        Enter a valid 10-digit contact number
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Address</mat-label>
+      <textarea matInput formControlName="address" required></textarea>
+      <mat-error
+        *ngIf="
+          form.get('address')?.hasError('required') &&
+          form.get('address')?.touched
+        "
+      >
+        Address is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>Pin Code</mat-label>
+      <input
+        matInput
+        formControlName="pinCode"
+        required
+        pattern="^[0-9]{6}$"
+      />
+      <mat-error
+        *ngIf="
+          form.get('pinCode')?.hasError('required') &&
+          form.get('pinCode')?.touched
+        "
+      >
+        Pin Code is required
+      </mat-error>
+      <mat-error
+        *ngIf="
+          form.get('pinCode')?.hasError('pattern') &&
+          form.get('pinCode')?.touched
+        "
+      >
+        Enter a valid 6-digit pin code
+      </mat-error>
+    </mat-form-field>
+
+    
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-button type="submit" color="primary" [disabled]="form.invalid">
+      Update
+    </button>
+  </mat-dialog-actions>
+</form>

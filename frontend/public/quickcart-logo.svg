@@ -1,0 +1,26 @@
+<svg viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clean white background -->
+  <rect width="500" height="150" fill="white" />
+  
+  <!-- Simple, modern shopping cart symbol -->
+  <g transform="translate(60, 75)">
+    <!-- Cart body -->
+    <path d="M0,0 H20 L35,45 H85 L100,15 H45 L40,0" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linejoin="round" />
+    
+    <!-- Cart wheels -->
+    <circle cx="45" cy="55" r="7" fill="#3b82f6" />
+    <circle cx="85" cy="55" r="7" fill="#3b82f6" />
+    
+    <!-- Fast motion lines -->
+    <path d="M95,15 L110,15 M90,25 L105,25 M85,35 L100,35" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+  </g>
+  
+  <!-- Company name in clean, professional font -->
+  <text x="200" y="80" font-family="Arial, sans-serif" font-size="50" font-weight="700" text-anchor="start" fill="#3b82f6">QuickCart</text>
+  
+  <!-- Tagline -->
+  <text x="202" y="105" font-family="Arial, sans-serif" font-size="14" font-weight="400" text-anchor="start" fill="#666666">E-Commerce Platform</text>
+  
+  <!-- Simple underline accent -->
+  <path d="M200,85 L400,85" stroke="#06b6d4" stroke-width="3" fill="none" />
+</svg>

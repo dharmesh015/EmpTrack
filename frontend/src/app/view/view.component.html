@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>User Details</h2>
+<mat-dialog-content>
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading user data...</p>
+  </div>
+
+  <div *ngIf="error" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>Error loading user data. Please try again later.</p>
+  </div>
+
+  <mat-card *ngIf="!loading && !error" class="user-card">
+    <mat-card-header>
+      <div mat-card-avatar>
+        <mat-icon class="avatar-icon">account_circle</mat-icon>
+      </div>
+      <mat-card-title>{{userData.name}}</mat-card-title>
+      <mat-card-subtitle>{{userData.userName}}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>email</mat-icon>
+            <span>Email:</span>
+          </div>
+          <div class="info-value">{{userData.email}}</div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>cake</mat-icon>
+            <span>Date of Birth:</span>
+          </div>
+          <div class="info-value">{{userData.dob | date:'mediumDate'}}</div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>wc</mat-icon>
+            <span>Gender:</span>
+          </div>
+          <div class="info-value">{{userData.gender | titlecase}}</div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>phone</mat-icon>
+            <span>Contact:</span>
+          </div>
+          <div class="info-value">{{userData.contactNumber}}</div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>home</mat-icon>
+            <span>Address:</span>
+          </div>
+          <div class="info-value">{{userData.address}}</div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-label">
+            <mat-icon>location_on</mat-icon>
+            <span>Pin Code:</span>
+          </div>
+          <div class="info-value">{{userData.pinCode}}</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onClose()">Close</button>
+</mat-dialog-actions>
