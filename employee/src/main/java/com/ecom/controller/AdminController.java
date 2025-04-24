@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -47,7 +48,7 @@ public class AdminController {
 	@GetMapping("/getAllUsersPageWise")
 	public Page<UserProxy> getAlluser(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
-	System.out.println("reach");
+
 		PageRequest pageable = PageRequest.of(page, size);
 		return adminservice.getAllUsersPageWise(pageable);
 	}
@@ -55,7 +56,7 @@ public class AdminController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/deleteUser/{userName}")
 	public ResponseEntity<Void> deleteUserByUserName(@PathVariable("userName") String userName) {
-		System.err.println("delete controller--" + userName);
+		
 		adminservice.deleteUser(userName);
 		return ResponseEntity.noContent().build();
 	}
@@ -71,13 +72,22 @@ public class AdminController {
 	public UserProxy getUser(@PathVariable("name") String name) {
 		return adminservice.getuser(name);
 	}
-
-
-	@GetMapping("/updateUserRole/{userName}/{role}")
-	public ResponseEntity<String> updateUserRole(@PathVariable("userName") String userName,
-			@PathVariable("role") String role) {
-		System.out.println("updateUserRole");
-		userService.updateUserRole(userName, role);
-		return ResponseEntity.ok("User  role updated successfully");
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@GetMapping("/searchUsers")
+	public Page<User> searchUsers(
+	        @RequestParam String query,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size) {
+	    PageRequest pageable = PageRequest.of(page, size);
+	    return adminservice.searchUsers(query, pageable);
 	}
+	  @GetMapping("/generate-fake-users")
+		public String generateFakeUsers() {
+			String message = adminservice.generateFakeUsers();
+			return message;
+		}
+
+
+	
 }

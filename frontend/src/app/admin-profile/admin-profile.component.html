@@ -27,7 +27,7 @@
     <ng-template #initialsAvatar>
       <div
         class="user-avatar-initials"
-        [style.background-color]="getProfileColor(user.userName || user.name)"
+        [style.background-color]="getProfileColor(user.userName )"
       >
         {{ getInitials(user.userName || user.name) }}
       </div>
@@ -71,8 +71,6 @@
     </div>
   </div>
 
-  <div class="profile-actions">
-    <button class="edit-button">Edit Profile</button>
-  </div>
+  
 </div>
 >

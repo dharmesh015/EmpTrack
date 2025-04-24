@@ -11,9 +11,18 @@
   </div>
 
   <mat-card *ngIf="!loading && !error" class="user-card">
+    
     <mat-card-header>
       <div mat-card-avatar>
-        <mat-icon class="avatar-icon">account_circle</mat-icon>
+        <mat-icon *ngIf="userData.imageUuid== null" class="avatar-icon">account_circle</mat-icon >
+        <img *ngIf="userData.imageUuid != null"
+            [src]="getImageUrl()"
+            class="rounded-circle"
+            width="50"
+            height="50"
+            alt="Profile"
+            class="profile-image"
+          />
       </div>
       <mat-card-title>{{userData.name}}</mat-card-title>
       <mat-card-subtitle>{{userData.userName}}</mat-card-subtitle>

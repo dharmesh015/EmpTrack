@@ -1,53 +1,57 @@
 
 <div class="card mt-3 cards">
-  <div class="card-header">
-    <h2>User Management</h2>
-  </div>
-
-  
-  <div class="card-body d-flex justify-content-end mb-3">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="openAddUserDialog()">
-      <mat-icon>add</mat-icon> Add User
-    </button>
-  </div>
-
-  
-  <div class="card-body">
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Items per page:</mat-label>
-          <mat-select [(value)]="size" (selectionChange)="loadUsers()">
-            <mat-option [value]="5">5</mat-option>
-            <mat-option [value]="10">10</mat-option>
-            <mat-option [value]="25">25</mat-option>
-            <mat-option [value]="50">50</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="col-md-6">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Search by Name:</mat-label>
-          <input matInput [(ngModel)]="searchTerm" (input)="filterUsers()">
-          
-        </mat-form-field>
-      </div>
+  <div class="card">
+    <div class="navbar card-header text-white">
+      <h4 class="mb-0"><i class="fas fa-users me-2"></i>User Management</h4>
+      <h4 class="mb-0">total user : {{totalUsers}}</h4>
     </div>
-  </div>
+    <div class="card-body">
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Items per page</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="fas fa-list"></i></span>
+            <mat-select [(value)]="size" (selectionChange)="loadUsers()" class="form-select">
+              <mat-option [value]="5">5</mat-option>
+              <mat-option [value]="10">10</mat-option>
+              <mat-option [value]="25">25</mat-option>
+              <mat-option [value]="50">50</mat-option>
+            </mat-select>
+          </div>
+        </div>
+        
+        <div class="col-md-8">
+          <label class="form-label fw-bold">Search users</label>
+          <div class="input-group">
+            <!-- <span class="input-group-text bg-light"><i class="fas fa-search"></i></span> -->
+            
+            <input 
+              type="text"
+              class="form-control"
+              [(ngModel)]="searchTerm" 
+              (keyup.enter)="globalSearch()"
+              placeholder="Search by name, email, username, phone, etc."
+              aria-label="Search users"
+            />
+            <button class="input-group-text bg-light" type="button" (click)="globalSearch()" style="background-color:  #3f51b5;;">
+              <i class="fas fa-search me-1"></i> Search
+            </button>
+            <button class="btn btn-outline-secondary" type="button" (click)="resetSearch()">
+              <i class="fas fa-undo me-1"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
 
- 
-  <div class="card-body table-responsive">
+  <div class="card-body table-responsive" *ngIf="!loading">
+    
     <table class="table table-striped">
       <thead>
         <tr>
           <th>User</th>
           <th>Full Name</th>
           <th>Email</th>
-          <th>Contact</th>
+          <!-- <th>Contact</th> -->
           <th>Gender</th>
           <th>Role</th>
           <th>Actions</th>
@@ -57,18 +61,22 @@
         <tr *ngFor="let user of filteredUsers">
           <td>
             <div class="user-profile-cell">
-            
               <div class="user-avatar" *ngIf="user.imageUuid; else initialsAvatar">
                 <a routerLink=""></a>
-                <img [src]="getImageUrl(user.imageUuid)" 
-                     class="rounded-circle" 
-                     width="50" 
-                     height="50" 
-                     alt="Profile"
-                     (error)="user.imageUuid == null"> 
+                <img
+                  [src]="getImageUrl(user.imageUuid)"
+                  class="rounded-circle"
+                  width="50"
+                  height="50"
+                  alt="Profile"
+                  (error)="(user.imageUuid == null)"
+                />
               </div>
               <ng-template #initialsAvatar>
-                <div class="user-avatar-initials" [style.background-color]="getProfileColor(user.userName || user.name)">
+                <div
+                  class="user-avatar-initials"
+                  [style.background-color]="getProfileColor(user.userName || user.name)"
+                >
                   {{ getInitials(user.userName || user.name) }}
                 </div>
               </ng-template>
@@ -77,30 +85,32 @@
           </td>
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
-          <td>{{ user.contactNumber }}</td>
+          <!-- <td>{{ user.contactNumber }}</td> -->
           <td>{{ user.gender }}</td>
           <td>{{ user.accessRole }}</td>
           <td>
-
             <button
               mat-icon-button
               color="primary"
               (click)="view(user.userName)"
-              matTooltip="visibility">
+              matTooltip="visibility"
+            >
               <mat-icon>visibility</mat-icon>
             </button>
             <button
               mat-icon-button
               color="primary"
               (click)="editUser(user.userName)"
-              matTooltip="Edit User">
+              matTooltip="Edit User"
+            >
               <mat-icon>edit</mat-icon>
             </button>
             <button
               mat-icon-button
               color="warn"
               (click)="deleteUser(user.userName, user.accessRole)"
-              matTooltip="Delete User">
+              matTooltip="Delete User"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -108,22 +118,46 @@
       </tbody>
     </table>
   </div>
-
-  
-  <div class="card-footer d-flex justify-content-between align-items-center">
-    <button
-      mat-button
-      [disabled]="page === 0"
-      (click)="previousPage()">
-      <mat-icon>chevron_left</mat-icon> Previous
-    </button>
-    <span>Page {{ page + 1 }}</span>
-    <button
-      mat-button
-      [disabled]="!hasMoreUsers"
-      (click)="nextPage()">
-      Next <mat-icon>chevron_right</mat-icon>
-    </button>
+ 
+  <div class="footercard">
+    <div >
+      <small >
+        Page {{ page + 1 }} of {{ totalPages }} | Showing {{ filteredUsers.length }} of {{ totalUsers }} users
+      </small>
+    </div>
+    <div>
+      <nav aria-label="Page navigation">
+        <ul class="pagination">
+          <!-- Previous button -->
+          <li class="page-item" [class.disabled]="page === 0">
+            <button class="page-link" (click)="previousPage()" [disabled]="page === 0">
+              <mat-icon>chevron_left</mat-icon> 
+            </button>
+          </li>
+          
+          <!-- Page numbers -->
+          <ng-container *ngFor="let pageNum of paginationArray">
+            <li *ngIf="pageNum >= 0" class="page-item" [class.active]="pageNum === page">
+              <button class="page-link" (click)="goToPage(pageNum)">
+                {{ pageNum + 1 }}
+              </button>
+            </li>
+            <li *ngIf="pageNum === -1" class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+          </ng-container>
+          
+          <!-- Next button -->
+          <li class="page-item" [class.disabled]="page >= totalPages - 1">
+            <button class="page-link" (click)="nextPage()" [disabled]="page >= totalPages - 1">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    
   </div>
-</div> 
-
+  
+  
+</div>

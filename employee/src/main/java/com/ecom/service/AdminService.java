@@ -18,4 +18,12 @@ public interface AdminService {
 	String updateUser(UserProxy user);
 
 	UserProxy getuser(String name);
+	
+	Page<User> searchUsers(String query, PageRequest pageable);
+	
+	String generateFakeUsers();
+	
+	
 }
+
+

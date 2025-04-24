@@ -149,6 +149,8 @@ export class UserService {
   getImageUrl(imageUuid: string): string {
     return `${this.apiUrl}/user-image/${imageUuid}`;
   }
-  
+  searchUsers(query: string, page: number, size: number): Observable<any> {
+    return this.httpclient.get(`${this.apiUrl}/searchUsers?query=${encodeURIComponent(query)}&page=${page}&size=${size}`);
+  }
   
 }

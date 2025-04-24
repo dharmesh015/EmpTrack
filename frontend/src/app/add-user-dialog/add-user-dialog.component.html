@@ -69,8 +69,12 @@
     
     <div>
         <mat-form-field appearance="outline">
+    
           <mat-label>Date of Birth</mat-label>
           <input matInput [matDatepicker]="picker" formControlName="dob">
+          <mat-error *ngIf="form.get('dob')?.hasError('required')">
+            dob is required
+          </mat-error>
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
@@ -82,8 +86,10 @@
         <mat-select formControlName="gender">
           <mat-option value="MALE">Male</mat-option>
           <mat-option value="FEMALE">Female</mat-option>
-          
         </mat-select>
+        <mat-error *ngIf="form.get('gender')?.hasError('required')">
+          gender is required
+        </mat-error>
       </mat-form-field>
     </div>
     
@@ -91,6 +97,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Address</mat-label>
         <textarea matInput formControlName="address"></textarea>
+        <mat-error *ngIf="form.get('address')?.hasError('required')">
+          address is required
+        </mat-error>
       </mat-form-field>
     </div>
     
@@ -98,6 +107,15 @@
       <mat-form-field appearance="outline">
         <mat-label>Pin Code</mat-label>
         <input matInput formControlName="pinCode">
+        <mat-error *ngIf="form.get('pinCode')?.hasError('required')">
+          pinCode is required
+        </mat-error>
+        <mat-error *ngIf="form.get('pinCode')?.hasError('minlength')">
+          Minimum length is 6 characters.
+        </mat-error>
+        <mat-error *ngIf="form.get('pinCode')?.hasError('maxlength')">
+          Maximum length is 6 characters.
+        </mat-error>
       </mat-form-field>
     </div>
   </form>

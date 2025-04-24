@@ -14,7 +14,14 @@
   .error-message {
     color: #d9534f;
   }
-  
+  .user-avatar-initials{
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    padding-top: 50px;
+    /* padding: 40px; */
+    font-size: 70px;
+  }
   .profile-card {
     background-color: #fff;
     border-radius: 8px;
@@ -105,3 +112,4 @@
       margin-bottom: 0.25rem;
     }
   }
+  

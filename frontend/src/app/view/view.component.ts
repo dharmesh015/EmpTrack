@@ -44,4 +44,10 @@ export class ViewComponent implements OnInit {
   onClose(): void {
     this.dialogRef.close();
   }
+
+  getImageUrl(): string {
+    if (! this.userData.imageUuid) return '';
+    console.log(this.userservice.getImageUrl( this.userData.imageUuid));
+    return this.userservice.getImageUrl(this.userData.imageUuid);
+  }
 }

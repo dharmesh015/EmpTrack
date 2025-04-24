@@ -1,169 +1,268 @@
-.container {
-  margin-top: 100px;
-  max-width: 1200px;
-  height: 100vh;
-  /* border:  2px solid red; */
-}
-
-.cards{
-  padding: 100px;
-}
-
-.text-center{
-  font-size: xx-large;
-  padding: 5px;
-  
-}
-@media (max-width: 600px) {
-  .container {
-    padding: 8px;
-  }
-}
-.card-header{
-  justify-content: center;
-}
-.nav {
-  background-color: #5980c1;
-  padding: 8px; /* Optional: Add padding to the toolbar */
-}
-
-button {
-  margin-right: 16px; /* Add margin to the right of each button */
-}
-
-button:last-child {
-  margin-right: 0; /* Remove margin from the last button */
-}
-
-.form-group {
-  display: flex;
-  justify-content: space-between; /* Space between left and right sections */
-  align-items: center; /* Align items vertically in the center */
-}
-
-.form-group > div {
-  margin-right: 15px; /* Space between the two input groups */
-}
-
-.form-control {
-  width: 200px; /* Set a fixed width for the inputs */
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: space-between; /* Space between pagination controls */
-  align-items: center; /* Align items vertically in the center */
-}
-
-@media (max-width: 500px) {
-  .button-container {
-    padding: 10px;
-    display: flex; /* Use flexbox for horizontal alignment */
-    flex-wrap: wrap; /* Allow buttons to wrap if necessary */
-    justify-content: flex-start; /* Align buttons to the start */
-  }
-  .table-responsive {
-    padding: 15px;
-    width: 90%;
-    /* margin: 20px; */
-  }
-  .page {
-    padding: 15px;
-  }
-  .button-container button {
-    margin-right: 16px; /* Space between buttons */
-    margin-bottom: 8px; /* Space below buttons for wrapping */
-  }
-  .form-control {
-    padding: 30px;
-    width: 80vw;
-  }
-
-  .button-container button:last-child {
-    margin-right: 0; /* Remove margin from the last button */
-  }
-}
-.cards {
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.card-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  padding: 16px 20px;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-}
-
-.table th {
-  font-weight: 500;
-  color: #495057;
-}
-
-/* User profile cell styling */
+/* Existing styles */
 .user-profile-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  gap: 10px;
 }
 
 .user-avatar-initials {
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 500;
+  font-weight: bold;
+  font-size: 18px;
+}
+.card-body {
+  padding: 20px;
+}
+
+.row.mb-3 {
+  margin-bottom: 20px;
+}
+
+.col-md-4,
+.col-md-8 {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-form-field.mat-outline .mat-form-field-outline {
+  border-radius: 4px;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  border-color: #007bff;
+}
+
+.mat-select, .mat-input-element {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.mat-select-trigger {
+  display: flex;
+  align-items: center;
+}
+
+button.mat-raised-button {
+  min-width: 100px;
+  margin-top: 0;
+  padding: 12px 20px;
+  text-align: center;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.mat-raised-button .mat-icon {
+  margin-right: 5px;
+}
+
+button.mat-raised-button:focus {
+  box-shadow: none;
+}
+
+button.mat-raised-button.primary {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 4px;
+}
+
+button.mat-raised-button.primary:hover {
+  background-color: #0056b3;
+}
+
+button.mat-raised-button.primary:disabled {
+  background-color: #c6d1e1;
+  color: #adb5bd;
+}
+
+.d-flex {
+  display: flex;
+  align-items: center;
+}
+
+.me-2 {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .col-md-4, .col-md-8 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .row.mb-3 {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .col-md-4 {
+    margin-bottom: 15px;
+  }
+
+  .col-md-8 .d-flex {
+    justify-content: space-between;
+  }
+
+  button.mat-raised-button {
+    min-width: 80px;
+  }
 }
 
 .user-name {
   font-weight: 500;
 }
-
-/* Button styling */
-button[mat-raised-button] {
-  border-radius: 20px;
-  padding: 0 16px;
+.d-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Ensures space between form field and buttons */
+  gap: 15px; /* Adds space between elements */
 }
 
-/* Pagination controls */
-.card-footer {
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  padding: 12px 20px;
+.mat-form-field {
+  flex-grow: 1; /* Makes the input field take up available space */
 }
 
-/* Responsive table */
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+button.mat-raised-button {
+  min-width: 100px; /* Ensure buttons are large enough */
+  padding: 12px 20px; /* Add padding to buttons for better spacing */
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px; /* Add space between buttons */
+}
+
+button.mat-raised-button .mat-icon {
+  margin-right: 8px; /* Add some space between the icon and button text */
+}
+
+button.mat-raised-button:focus {
+  box-shadow: none;
+}
+
+button.mat-raised-button.primary {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 4px;
+}
+
+button.mat-raised-button.primary:hover {
+  background-color: #0056b3;
+}
+
+button.mat-raised-button.primary:disabled {
+  background-color: #c6d1e1;
+  color: #adb5bd;
 }
 
 @media (max-width: 768px) {
-  .table th, .table td {
-    white-space: nowrap;
+  .d-flex {
+    flex-direction: column; /* Stack elements on smaller screens */
+    gap: 15px; /* Space between stacked elements */
+  }
 
+  button.mat-raised-button {
+    min-width: 100%; /* Buttons take up full width on small screens */
+    margin-left: 0;
+  }
+}
+
+.totaluser {
+  margin-top: 10px;
+  color: #3f51b5;
+  font-size: 1.2rem;
+}
+
+/* Pagination styles */
+.pagination {
+  margin-bottom: 0;
+}
+
+.pagination .page-item .page-link {
+  color: #3f51b5;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  min-width: 36px;
+  justify-content: center;
+  padding: 0 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 2px;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #3f51b5;
+  border-color: #3f51b5;
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.pagination mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  line-height: 18px;
+}
+
+/* Card styles */
+.cards {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: none;
+  padding: 40px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.25rem;
+}
+.footercard{
+  display: flex;
+  justify-content: space-between;
+ 
+}
+.card-header h2 {
+  margin-bottom: 0;
+  color: #3f51b5;
+}
+.navbar{
+  background-color:  #3f51b5;;
+}
+
+.table th {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pagination .page-link {
+    font-size: 14px;
+    min-width: 30px;
+    height: 30px;
+  }
+  
+  .pagination mat-icon {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
   }
 }

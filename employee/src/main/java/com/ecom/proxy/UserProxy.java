@@ -32,7 +32,6 @@ import lombok.Setter;
 @JsonInclude(Include.NON_NULL)
 public class UserProxy {
 
-	
 	private Long id;
 
 	@NotBlank(message = "Name is required")
@@ -49,7 +48,7 @@ public class UserProxy {
 	@NotBlank(message = "Password is required")
 	@Size(min = 8, message = "Password must be at least 8 characters long")
 	private String password;
-	
+
 	@NotBlank(message = "email is required")
 	private String email;
 
@@ -63,7 +62,7 @@ public class UserProxy {
 //	@Lob
 //	@Column(name = "profile_image", columnDefinition = "BLOB")
 //	private byte[] profileImage;
-	
+
 	private String imageUuid;
 
 	@NotBlank(message = "Contact number is required")
@@ -75,6 +74,5 @@ public class UserProxy {
 	private String pinCode;
 
 	private Set<RoleProxy> role;
-	
-	
+
 }

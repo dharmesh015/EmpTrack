@@ -37,10 +37,10 @@ export class AddUserDialogComponent {
         Validators.required, 
         Validators.pattern(/^\d{10}$/)
       ]],
-      dob: [''],
-      gender: [''],
-      address: [''],
-      pinCode: [''],
+      dob: ['', Validators.required],
+      gender: ['',Validators.required],
+      address: ['',Validators.required],
+      pinCode: ['',[Validators.required, Validators.minLength(6),Validators.maxLength(6)]],
     });
   }
 

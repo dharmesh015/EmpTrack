@@ -13,11 +13,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class ForgotPasswordComponent {
   isLoading = false;
   token: string = '';
+  emailSent = false; // New flag to track when email is sent
+  
   constructor(
     private userService: UserService,
     private acrouter: ActivatedRoute,
     private router: Router
   ) {}
+  
   sendEmail(form: NgForm) {
     if (form.valid) {
       this.isLoading = true;
@@ -34,12 +37,9 @@ export class ForgotPasswordComponent {
               confirmButtonText: 'OK',
             });
           } else if (response === 'S') {
-            Swal.fire({
-              title: 'Email Sent',
-              text: 'A password reset link has been sent to your email address.',
-              icon: 'success',
-              confirmButtonText: 'OK',
-            });
+           
+            this.emailSent = true;
+            
             form.resetForm();
           } else {
             Swal.fire({

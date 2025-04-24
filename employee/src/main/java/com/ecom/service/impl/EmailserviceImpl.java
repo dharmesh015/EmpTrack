@@ -56,10 +56,10 @@ public class EmailserviceImpl implements EmailService {
 
 		Optional<User> userobj = userdao.findByEmail(toEmail);
 		
-		User user=userobj.get();
-		if (user == null) {
+		if (userobj.isEmpty()) {
 			return "UNF";
 		}
+		User user=userobj.get();
 
 		String resetToken = tokenService.generatePasswordResetToken(user.getEmail(), user.getPassword());
 		String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
@@ -75,10 +75,7 @@ public class EmailserviceImpl implements EmailService {
 				+ "Thank you,\nYour Application Team");
 
 		System.out.println("Hello " + user.getName() + ",\n\n"
-				+ "You requested to reset your password. Please click the link below to reset your password:\n\n"
-				+ resetLink + "\n\n" + "This link will expire in 10 minutes.\n\n"
-				+ "If you did not request a password reset, please ignore this email.\n\n"
-				+ "Thank you,\nYour Application Team");
+				+ resetLink );
 
 		mailSender.send(message);
 		return "S";

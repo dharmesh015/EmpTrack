@@ -1,4 +1,5 @@
 
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../_service/user.service';
@@ -6,7 +7,6 @@ import Swal from 'sweetalert2';
 import { MatDialog } from '@angular/material/dialog';
 import { UpdateUserDialogComponent } from '../update-user-dialog/update-user-dialog.component';
 import { AddUserDialogComponent } from '../add-user-dialog/add-user-dialog.component';
-
 import { ViewComponent } from '../view/view.component';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
 
@@ -23,6 +23,11 @@ export class AdminComponent implements OnInit {
   totalUsers: number = 0;
   hasMoreUsers: boolean = true;
   searchTerm: string = '';
+  isGlobalSearch: boolean = false;
+  
+  // New properties for enhanced pagination
+  totalPages: number = 0;
+  paginationArray: number[] = [];
 
   user: UserDetailsProxy[] = [];
   loading = true;
@@ -37,8 +42,6 @@ export class AdminComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
   }
-
- 
   
   imageUrls: Map<string, string> = new Map<string, string>();
 
@@ -49,35 +52,128 @@ export class AdminComponent implements OnInit {
   }
 
   loadUsers(): void {
-    this.userservice.getAllUsersPageWise(this.page, this.size).subscribe(
+    this.loading = true;
+    
+    if (this.isGlobalSearch && this.searchTerm && this.searchTerm.trim() !== '') {
+      this.performGlobalSearch();
+    } else {
+      this.isGlobalSearch = false;
+      this.userservice.getAllUsersPageWise(this.page, this.size).subscribe(
+        (data: any) => {
+          this.handleUserDataResponse(data);
+        },
+        (error: any) => {
+          this.handleError(error, 'Error fetching users');
+        }
+      );
+    }
+  }
+
+  performGlobalSearch(): void {
+    this.loading = true;
+    
+    this.userservice.searchUsers(this.searchTerm, this.page, this.size).subscribe(
       (data: any) => {
-       
-        this.user = data.content;
-        this.user = data.content.map((obj: any) => {
-          const roleName = obj.role.length > 0 ? obj.role[0].roleName : 'USER'; 
-          obj.accessRole = roleName 
-          return obj; 
-        });
-        
-        console.log(this.user);
-        this.totalUsers = data.totalElements;
-        this.filteredUsers = this.user;
-        this.hasMoreUsers = this.user.length === this.size;
-        console.log(this.user);
+        this.handleUserDataResponse(data);
       },
       (error: any) => {
-        console.error('Error fetching users', error);
-        Swal.fire(
-          'Error',
-          'Failed to load users. Please try again later.',
-          'error'
-        );
+        this.handleError(error, 'Error searching users');
       }
     );
   }
 
+  globalSearch(): void {
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      this.page = 0; // Reset to first page
+      this.isGlobalSearch = true;
+      this.performGlobalSearch();
+    } else {
+      this.isGlobalSearch = false;
+      this.loadUsers();
+    }
+  }
+  resetSearch(): void {
+    // Clear the search text
+    this.searchTerm = '';
+ 
+    // Reset to first page
+    this.page = 0; 
+ 
+    // Reload users
+    this.loadUsers();
+  }
+  handleUserDataResponse(data: any): void {
+    this.user = data.content.map((obj: any) => {
+      const roleName = obj.role.length > 0 ? obj.role[0].roleName : 'USER'; 
+      obj.accessRole = roleName;
+      return obj; 
+    });
+    
+    this.totalUsers = data.totalElements;
+    this.totalPages = Math.ceil(this.totalUsers / this.size);
+    this.updatePaginationArray();
+    this.filteredUsers = this.user;
+    this.hasMoreUsers = this.page < this.totalPages - 1;
+    this.loading = false;
+  }
+  
+  handleError(error: any, message: string): void {
+    console.error(message, error);
+    Swal.fire(
+      'Error',
+      `${message}. Please try again later.`,
+      'error'
+    );
+    this.loading = false;
+  }
+
+  // New method to update pagination array
+  updatePaginationArray(): void {
+    this.paginationArray = [];
+    
+    // For small number of pages, show all
+    if (this.totalPages <= 7) {
+      for (let i = 0; i < this.totalPages; i++) {
+        this.paginationArray.push(i);
+      }
+    } else {
+      // For many pages, show first, last, and pages around current
+      if (this.page < 3) {
+        // Near start
+        for (let i = 0; i < 5; i++) {
+          this.paginationArray.push(i);
+        }
+        this.paginationArray.push(-1); // Ellipsis
+        this.paginationArray.push(this.totalPages - 1);
+      } else if (this.page > this.totalPages - 4) {
+        // Near end
+        this.paginationArray.push(0);
+        this.paginationArray.push(-1); // Ellipsis
+        for (let i = this.totalPages - 5; i < this.totalPages; i++) {
+          this.paginationArray.push(i);
+        }
+      } else {
+        // Middle
+        this.paginationArray.push(0);
+        this.paginationArray.push(-1); // Ellipsis
+        for (let i = this.page - 1; i <= this.page + 1; i++) {
+          this.paginationArray.push(i);
+        }
+        this.paginationArray.push(-1); // Ellipsis
+        this.paginationArray.push(this.totalPages - 1);
+      }
+    }
+  }
+
+  goToPage(pageNum: number): void {
+    if (pageNum >= 0 && pageNum < this.totalPages) {
+      this.page = pageNum;
+      this.loadUsers();
+    }
+  }
+
   filterUsers(): void {
-    if (this.searchTerm) {
+    if (!this.isGlobalSearch && this.searchTerm) {
       this.filteredUsers = this.user.filter((user) =>
         (user.userName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
          user.name?.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
@@ -95,9 +191,6 @@ export class AdminComponent implements OnInit {
       disableClose: true,
     });
 
-   
-    
-
     editdialog.afterClosed().subscribe((result) => {
       if (result) {
         this.loadUsers();
@@ -112,17 +205,14 @@ export class AdminComponent implements OnInit {
       disableClose: true,
     });
 
-   
-    
-
     editdialog.afterClosed().subscribe((result) => {
       if (result) {
         this.loadUsers();
       }
-    });}
+    });
+  }
 
   deleteUser(name: string, role: string): void {
-    
     if (role !== 'ADMIN') {
       Swal.fire({
         title: 'Are you sure?',
@@ -167,7 +257,7 @@ export class AdminComponent implements OnInit {
   }
 
   nextPage(): void {
-    if (this.hasMoreUsers) {
+    if (this.page < this.totalPages - 1) {
       this.page++;
       this.loadUsers();
     }
@@ -175,7 +265,7 @@ export class AdminComponent implements OnInit {
   
   openAddUserDialog(): void {
     const dialogRef = this.dialog.open(AddUserDialogComponent, {
-      width: '500px',
+      width: '300px',
       disableClose: true,
     });
 
@@ -199,7 +289,7 @@ export class AdminComponent implements OnInit {
 
   getProfileColor(name: string): string {
     const colors = [
-      '#1abc9c', '#2ecc71',  '#9b59b6',
+      '#1abc9c', '#2ecc71', '#9b59b6',
       '#16a085', '#27ae60', '#2980b9', '#8e44ad', '#2c3e50',
       '#f1c40f', '#e67e22', '#e74c3c', '#ecf0f1', '#95a5a6'
     ];
