@@ -9,6 +9,8 @@ import { UpdateUserDialogComponent } from '../update-user-dialog/update-user-dia
 import { AddUserDialogComponent } from '../add-user-dialog/add-user-dialog.component';
 import { ViewComponent } from '../view/view.component';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
+import { HttpClient } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-admin',
@@ -36,7 +38,9 @@ export class AdminComponent implements OnInit {
   constructor(
     private router: Router,
     private userservice: UserService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private http: HttpClient,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -202,6 +206,7 @@ export class AdminComponent implements OnInit {
     const editdialog = this.dialog.open(ViewComponent, {
       data: { userName: username },
       width: '500px',
+      height:"500px",
       disableClose: true,
     });
 
@@ -220,6 +225,7 @@ export class AdminComponent implements OnInit {
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!',
+        confirmButtonColor: "#db2e2e",
         cancelButtonText: 'No, cancel!',
       }).then((result) => {
         if (result.isConfirmed) {
@@ -300,5 +306,34 @@ export class AdminComponent implements OnInit {
     }
     
     return colors[Math.abs(hash) % colors.length];
+  }
+
+  downloadExcel(): void {
+    this.http.get('http://localhost:9090/api/users/download', { 
+      responseType: 'blob' 
+    }).subscribe({
+      next: (data: Blob) => {
+        const blob = new Blob([data], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'users_data.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+        // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
+        Swal.fire({
+          title: 'Success',
+          text: 'Excel file downloaded successfully',
+          icon: 'success'
+        });
+        
+      },
+      error: (error) => {
+        console.error('Error downloading Excel file', error);
+        this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
+      }
+    });
   }
 }

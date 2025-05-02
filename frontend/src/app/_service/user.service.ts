@@ -62,20 +62,21 @@ export class UserService {
       .pipe(map((response) => response as string));
   }
 
-  sendEmail(email: string): Observable<string> {
-    return this.httpclient
-      .post(
-        this.apiUrl + '/send-email',
-        { email: email },
-        { responseType: 'text' }
-      )
-      .pipe(map((response) => response as string));
-  }
+  sendEmail(email: string, captcha: string): Observable<string> {
+    return this.httpclient.post(
+      `${this.apiUrl}/send-email/${email}/${captcha}`,
+      {}, 
+      {
+        headers: this.requestHeader.append('No-Auth', 'True'),
+        withCredentials: true, 
+        responseType: 'text'
+      }
+    );}
 
-  resetPassword(email: string, newPassword: string): Observable<any> {
-    console.log(email, newPassword);
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    console.log(token, newPassword);
     return this.httpclient
-      .get(`${this.apiUrl}/reset-password/${email}/${newPassword}`, {
+      .get(`${this.apiUrl}/reset-password/${token}/${newPassword}`, {
         responseType: 'text',
       })
       .pipe(map((response) => response as string));
@@ -128,14 +129,20 @@ export class UserService {
     );
   }
 
-  getCaptchaImage(): Observable<Blob> {
-    return this.httpclient.get(this.apiUrl + '/captcha', {
+  // getCaptchaImage(): Observable<Blob> {
+  //   return this.httpclient.get(this.apiUrl + '/captcha', {
+  //     responseType: 'blob',
+  //     withCredentials: true,
+  //   });
+  // }
+
+  getCaptchaImage(timestamp?: number): Observable<Blob> {
+    const url = timestamp ? `${this.apiUrl}/captcha?t=${timestamp}` : `${this.apiUrl}/captcha`;
+    return this.httpclient.get(url, {
       responseType: 'blob',
       withCredentials: true,
     });
   }
-
-
   getAllUsers(): Observable<any[]> {
     return this.httpclient.get<any[]>(`${this.apiUrl}/users`);
   }

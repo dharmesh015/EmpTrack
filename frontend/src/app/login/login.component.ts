@@ -25,21 +25,42 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Only load CAPTCHA if the user is not logged in
+
     if (!this.userAuthService.isLoggedIn()) {
       this.loadCaptcha();
     }
   }
 
+  // loadCaptcha() {
+  //   this.loginService.getCaptchaImage().subscribe(
+  //     (response: Blob) => {
+  //       this.captchaUrl = URL.createObjectURL(response);
+  //       console.log(this.captchaUrl);
+  //     },
+  //     (error: { message: any; error: { message: any } }) => {
+  //       const errorMessage =
+  //         error.message || error.error?.message || 'Error fetching CAPTCHA image.';
+  //       Swal.fire({
+  //         icon: 'error',
+  //         title: 'Captcha not loading!',
+  //         text: errorMessage,
+  //         confirmButtonText: 'OK',
+  //       });
+  //     }
+  //   );
+  // }
   loadCaptcha() {
-    this.loginService.getCaptchaImage().subscribe(
+    const timestamp = new Date().getTime();
+    this.loginService.getCaptchaImage(timestamp).subscribe(
       (response: Blob) => {
+        // Revoke previous URL if exists
+        if (this.captchaUrl) {
+          URL.revokeObjectURL(this.captchaUrl);
+        }
         this.captchaUrl = URL.createObjectURL(response);
-        console.log(this.captchaUrl);
       },
-      (error: { message: any; error: { message: any } }) => {
-        const errorMessage =
-          error.message || error.error?.message || 'Error fetching CAPTCHA image.';
+      (error) => {
+        const errorMessage = error.message || error.error?.message || 'Error fetching CAPTCHA image.';
         Swal.fire({
           icon: 'error',
           title: 'Captcha not loading!',
@@ -52,6 +73,16 @@ export class LoginComponent implements OnInit {
 
   ReloadCaptcha() {
     this.loadCaptcha();
+  }
+
+  ngOnDestroy() {
+    if (this.captchaUrl) {
+      URL.revokeObjectURL(this.captchaUrl);
+    }
+  }
+  handleImageError() {
+    console.error('CAPTCHA image failed to load');
+    this.loadCaptcha(); // Try reloading on error
   }
 
   login(form: NgForm) {

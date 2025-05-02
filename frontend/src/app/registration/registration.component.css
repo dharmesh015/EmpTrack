@@ -207,7 +207,7 @@
   position: relative;
   max-width: 350px;
   height: 270px;
-  margin: 2rem auto;
+  /* margin: 2rem auto; */
 }
 
 .feature-list {
@@ -265,7 +265,9 @@
     transform: translateX(0);
   }
 }
-
+.instruction{
+  font-size: 25px;
+}
 .intro-badge {
   display: inline-block;
   background-color: rgba(89, 128, 193, 0.15);
@@ -277,7 +279,7 @@
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-@keyframes trolleyMove {
+/* @keyframes trolleyMove {
   0% {
     transform: translateX(-100px) rotate(0deg);
   }
@@ -290,7 +292,7 @@
   100% {
     transform: translateX(0) rotate(0deg);
   }
-}
+} */
 
 .trolley-animation {
   animation: trolleyMove 1.5s ease-out forwards;

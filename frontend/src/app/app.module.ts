@@ -45,6 +45,7 @@ import { AdminProfileComponent } from './admin-profile/admin-profile.component';
 
 
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -84,7 +85,8 @@ import { AdminProfileComponent } from './admin-profile/admin-profile.component';
     MatPaginatorModule,
     MatRadioModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    
     
  
   ],

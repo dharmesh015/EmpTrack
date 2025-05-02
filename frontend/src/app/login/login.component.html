@@ -2,7 +2,7 @@
   <div class="container px-4 py-5 px-md-5 text-center text-lg-start">
     <div class="row gx-lg-5 align-items-center mb-5">
       <div class="col-lg-6 mb-5 mb-lg-0">
-        <div class="intro-badge">Welcome to OPL</div>
+        <div class="intro-badge">Welcome</div>
         <h1 class="my-3 display-3 fw-bold ls-tight">
           <span class="text-primary">Login to your account</span>
         </h1>
@@ -279,15 +279,12 @@
             </g>
           </svg>
         </div>
-
-       
       </div>
 
       <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
         <div class="card">
           <div class="card-header">
-            <div class="brand-logo">OPL</div>
-            <p class="mb-0">Sign in to your account</p>
+            <p class="instruction mb-0">Sign in to your account</p>
           </div>
 
           <div class="card-body px-4 py-5 px-md-5">
@@ -327,12 +324,12 @@
                   required
                 />
                 <label class="form-label" for="password">Password</label>
-                <div class="error" *ngIf="password.invalid && password.touched" >
+                <div class="error" *ngIf="password.invalid && password.touched">
                   <div *ngIf="password.errors?.['required']">
                     Password is required
                   </div>
                 </div>
-                
+
                 <div class="d-flex justify-content-end">
                   <a routerLink="/forgot-password" class="text-primary"
                     >Forgot Password?</a
@@ -341,7 +338,12 @@
               </div>
 
               <div class="form-outline mb-4">
-                <img [src]="captchaUrl" alt="CAPTCHA" *ngIf="captchaUrl" />
+                <!-- <img [src]="captchaUrl" alt="CAPTCHA" *ngIf="captchaUrl" /> -->
+                <img  *ngIf="captchaUrl"
+                  [src]="captchaUrl"
+                  (error)="handleImageError()"
+                  alt="CAPTCHA"
+                />
                 <div *ngIf="!captchaUrl" class="captcha-loading">
                   Loading captcha...
                 </div>

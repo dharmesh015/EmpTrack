@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from '../_service/user.service';
 import { UserAuthServiceService } from '../_service/user-auth-service.service';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
+import { MatDialog } from '@angular/material/dialog';
+import { UpdateUserDialogComponent } from '../update-user-dialog/update-user-dialog.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-admin-profile',
@@ -14,12 +17,15 @@ export class AdminProfileComponent implements OnInit {
   loading = true;
   error = false;
 
-  constructor(private userService: UserService,private authService:UserAuthServiceService) { }
+  constructor(
+    private userService: UserService,
+    private authService: UserAuthServiceService,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
-   
     const userName = this.authService.getUser().userName;
-    console.log(userName)
+    console.log(userName);
     this.loadUserProfile(userName);
   }
 
@@ -41,6 +47,28 @@ export class AdminProfileComponent implements OnInit {
       });
   }
 
+  openUpdateDialog(): void {
+    const dialogRef = this.dialog.open(UpdateUserDialogComponent, {
+      width: '500px',
+      data: { userName: this.user.userName }
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      // Only show success message and refresh data if result is true
+      // This ensures cancel clicks don't trigger the success flow
+      if (result === true) {
+        // Refresh profile data after update
+        this.loadUserProfile(this.user.userName);
+        // // Show success message
+        // Swal.fire({
+        //   title: 'Success!',
+        //   text: 'Profile updated successfully',
+        //   icon: 'success',
+        //   confirmButtonText: 'OK'
+        // });
+      }
+    });
+  }
   imageUrls: Map<string, string> = new Map<string, string>();
 
   getImageUrl(imageUuid: string): string {
@@ -48,8 +76,6 @@ export class AdminProfileComponent implements OnInit {
     console.log(this.userService.getImageUrl(imageUuid));
     return this.userService.getImageUrl(imageUuid);
   }
-
- 
 
   getInitials(name: string): string {
     if (!name) return '?';

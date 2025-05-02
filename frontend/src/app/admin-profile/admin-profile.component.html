@@ -8,7 +8,6 @@
   <div *ngIf="!loading && !error" class="profile-card">
     <div class="profile-header">
       <div class="profile-image-container">
-
         <div class="user-avatar" *ngIf="user.imageUuid; else initialsAvatar">
           <a routerLink=""></a>
           <img
@@ -27,7 +26,7 @@
     <ng-template #initialsAvatar>
       <div
         class="user-avatar-initials"
-        [style.background-color]="getProfileColor(user.userName )"
+        [style.background-color]="getProfileColor(user.userName)"
       >
         {{ getInitials(user.userName || user.name) }}
       </div>
@@ -70,7 +69,9 @@
       <span class="value">{{ user.pinCode }}</span>
     </div>
   </div>
-
   
+  <!-- Update Profile Button -->
+  <div class="profile-actions">
+    <button class="edit-button" (click)="openUpdateDialog()">Update Profile</button>
+  </div>
 </div>
->
