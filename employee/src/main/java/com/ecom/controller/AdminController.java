@@ -39,30 +39,7 @@ public class AdminController {
     
     @Autowired
     private MapperUtil mapper;
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/getAllUsersPageWise")
-    public ResponseEntity<?> getAllUser(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
-        
-        try {
-            Sort sort = direction.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : 
-                Sort.by(sortBy).ascending();
-            
-            PageRequest pageable = PageRequest.of(page, size, sort);
-            Page<?> pageData = adminService.getAllUsersPageWise(pageable);
-            
-            return ResponseEntity.ok(pageData);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                    "Error", "Failed to retrieve users: " + e.getMessage()));
-        }
-    }
+   
     
     @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/getUsersByRole")
@@ -140,30 +117,7 @@ public class AdminController {
         }
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/searchUsers")
-    public ResponseEntity<?> searchUsers(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
-        
-        try {
-            Sort sort = direction.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : 
-                Sort.by(sortBy).ascending();
-                
-            PageRequest pageable = PageRequest.of(page, size, sort);
-            Page<?> pageData = adminService.searchUsers(query, pageable);
-            
-            return ResponseEntity.ok(pageData);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                    "Error", "Failed to search users: " + e.getMessage()));
-        }
-    }
+    
     
     @GetMapping("/generate-fake-users")
     public ResponseEntity<?> generateFakeUsers() {
@@ -193,53 +147,9 @@ public class AdminController {
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/getAllRoles")
-    public ResponseEntity<?> getAllRoles() {
-        try {
-            List<Role> roles = adminService.getAllRoles();
-            return ResponseEntity.ok(
-                new ApiResponse(HttpStatus.OK.value(), "Success", "Roles retrieved successfully", roles));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                    "Error", "Failed to retrieve roles: " + e.getMessage()));
-        }
-    }
+
     
-    @GetMapping("/checkUsername/{userName}")
-    public ResponseEntity<Boolean> checkUsernameExists(@PathVariable String userName) {
-        try {
-            boolean exists = adminService.checkUsernameExists(userName);
-            return ResponseEntity.ok(exists);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
-        }
-    }
-    
-    @GetMapping("/checkEmail/{email}")
-    public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email) {
-        try {
-            boolean exists = adminService.checkEmailExists(email);
-            return ResponseEntity.ok(exists);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
-        }
-    }
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/reactivateUser/{userName}")
-    public ResponseEntity<?> reactivateUser(@PathVariable("userName") String userName) {
-        try {
-            String result = adminService.reactivateUser(userName);
-            return ResponseEntity.ok(
-                new ApiResponse(HttpStatus.OK.value(), "Success", result));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                    "Error", "Failed to reactivate user: " + e.getMessage()));
-        }
-    }
+  
     
     
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -250,8 +160,7 @@ public class AdminController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            @RequestParam(defaultValue = "true") boolean activeOnly) {
+            @RequestParam(defaultValue = "asc") String direction) {
 
         try {
             Sort sort = direction.equalsIgnoreCase("desc") ? 
@@ -259,7 +168,7 @@ public class AdminController {
                 Sort.by(sortBy).ascending();
             PageRequest pageable = PageRequest.of(page, size, sort);
             
-            Page<?> pageData = adminService.searchUsersByRole(role, query, pageable, activeOnly);
+            Page<?> pageData = adminService.searchUsersByRole(role, query, pageable);
             return ResponseEntity.ok(pageData);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

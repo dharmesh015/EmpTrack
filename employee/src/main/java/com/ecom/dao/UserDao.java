@@ -1,4 +1,4 @@
-package com.ecom.dao;
+ngpackage com.ecom.dao;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,22 +19,6 @@ public interface UserDao extends JpaRepository<User, Long> {
     // Updated queries to include active status
     Page<User> findByRole_RoleNameAndActiveTrue(String roleName, Pageable pageable);
     
-    @Query("SELECT u FROM User u JOIN u.role r WHERE u.active = true AND (" +
-    "LOWER(u.userName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-    "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-    "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))")
-    Page<User> searchUsers(@Param("query") String query, Pageable pageable);
-    
-    @Query("SELECT u FROM User u JOIN u.role r WHERE r.roleName = :role AND u.active = true AND (" +
-    "LOWER(u.userName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-    "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-    "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-    "LOWER(u.contactNumber) LIKE LOWER(CONCAT('%', :query, '%')))")
-    Page<User> searchUsersByRole(@Param("role") String role, @Param("query") String query, Pageable pageable);
-    
-    long countByRole_RoleNameAndActiveTrue(String roleName);
-    
-    long countByCreatedAtAfterAndActiveTrue(LocalDateTime date);
     
     @Query("SELECT u FROM User u JOIN u.role r WHERE r.roleName = :role AND u.active = true AND (" +
     	    "LOWER(u.userName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

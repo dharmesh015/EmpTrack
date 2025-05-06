@@ -42,18 +42,6 @@ public class AdminServiceImpl implements AdminService {
         this.mapperUtil = mapperUtil;
     }
     
-    @Override
-    public Page<?> getAllUsersPageWise(PageRequest pageable) {
-        // Find active users with role USER using the pageable which now includes sorting
-        Page<User> allByRoleName = userDao.findByRole_RoleNameAndActiveTrue("USER", pageable);
-        
-        // Convert to UserProxy and return the page
-        return new PageImpl<>(
-            mapperUtil.convertList(allByRoleName.getContent(), UserProxy.class), 
-            pageable,
-            allByRoleName.getTotalElements()
-        );
-    }
     
     @Override
     public Page<?> getUsersByRole(String role, PageRequest pageable) {
@@ -75,7 +63,7 @@ public class AdminServiceImpl implements AdminService {
         }
         
         // This now only returns active users
-        Page<User> searchResults = userDao.searchUsersByRole(role, query, pageable);
+        Page<User> searchResults = userDao.searchUsersByRoleAndActiveTrue(role, query, pageable);
         
         return new PageImpl<>(
             mapperUtil.convertList(searchResults.getContent(), UserProxy.class),
@@ -127,20 +115,8 @@ public class AdminServiceImpl implements AdminService {
         return null;
     }
     
-    @Override
-    public Page<?> searchUsers(String query, PageRequest pageable) {
-        if (query == null || query.trim().isEmpty()) {
-            return getAllUsersPageWise(pageable);
-        }
-        
-        Page<User> searchResults = userDao.searchUsers(query, pageable);
-        
-        return new PageImpl<>(
-            mapperUtil.convertList(searchResults.getContent(), UserProxy.class),
-            pageable,
-            searchResults.getTotalElements()
-        );
-    }
+    
+    
     
     @Override
     public String generateFakeUsers() {
@@ -183,49 +159,6 @@ public class AdminServiceImpl implements AdminService {
         }
     }
     
-    @Override
-    public List<Role> getAllRoles() {
-        return (List<Role>) roleDao.findAll();
-    }
-    
-    @Override
-    public boolean checkUsernameExists(String userName) {
-        return userDao.findByUserName(userName).isPresent();
-    }
-    
-    @Override
-    public boolean checkEmailExists(String email) {
-        return userDao.findByEmail(email).isPresent();
-    }
-    
-    // Add methods to reactivate users or get inactive users if needed
-    @Override
-    public String reactivateUser(String userName) {
-        User user = userDao.findByUserName(userName)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setActive(true);
-        userDao.save(user);
-        return "User reactivated successfully";
-    }
-    
-   
-
-	@Override
-	public Page<?> searchUsersByRole(String role, String query, PageRequest pageable, boolean activeOnly) {
-        Page<User> users;
-
-        if (activeOnly) {
-            users = userDao.searchUsersByRoleAndActiveTrue(role, query, pageable);
-        } else {
-            users = userDao.searchUsersByRole(role, query, pageable); // This one searches without filtering by active status
-        }
-
-        return new PageImpl<>(
-            mapperUtil.convertList(users.getContent(), UserProxy.class),
-            pageable,
-            users.getTotalElements()
-        );
-
-	}
+  
 
 }
