@@ -82,7 +82,7 @@ export class AdminComponent implements OnInit {
         this.size, 
         this.sortBy, 
         this.sortDirection,
-        !this.showInactive // Pass the opposite of showInactive to get only active users by default
+        
       ).subscribe({
         next: (data: any) => {
           this.handleUserDataResponse(data);
@@ -301,55 +301,10 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Deactivate user (soft delete)
-  deactivateUser(userName: string): void {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: `You are about to deactivate user "${userName}". This action can be reversed later.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, deactivate it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.userservice.deactivateUser(userName).subscribe({
-          next: (response: any) => {
-            Swal.fire('Deactivated!', 'User has been deactivated successfully.', 'success');
-            this.loadUsers();
-          },
-          error: (error) => {
-            Swal.fire('Error!', `Failed to deactivate user: ${error.message || 'Unknown error'}`, 'error');
-          }
-        });
-      }
-    });
-  }
+  
   
   // Reactivate user
-  reactivateUser(userName: string): void {
-    Swal.fire({
-      title: 'Reactivate User',
-      text: `Do you want to reactivate user "${userName}"?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, reactivate!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.userservice.reactivateUser(userName).subscribe({
-          next: (response: any) => {
-            Swal.fire('Reactivated!', 'User has been reactivated successfully.', 'success');
-            this.loadUsers();
-          },
-          error: (error) => {
-            Swal.fire('Error!', `Failed to reactivate user: ${error.message || 'Unknown error'}`, 'error');
-          }
-        });
-      }
-    });
-  }
+  
 
   // Delete user (hard delete - keeping this for admin with warning)
   deleteUser(userName: string, role: string): void {

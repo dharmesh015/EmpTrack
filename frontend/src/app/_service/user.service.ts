@@ -71,43 +71,20 @@ export class UserService {
     );
   }
 
-  // Get all users with pagination and active status filter
-  public getAllUsersPageWise(page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sortBy', sortBy)
-      .set('direction', direction)
-      .set('activeOnly', activeOnly.toString());
-      
-    return this.httpclient.get<any>(`${this.apiUrl}/getAllUsersPageWise`, { params });
-  }
-  
-  // Get users by role with pagination and active status filter
-  public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
+
+  public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
     let params = new HttpParams()
       .set('role', role)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sortBy', sortBy)
       .set('direction', direction)
-      .set('activeOnly', activeOnly.toString());
+      ;
       
     return this.httpclient.get<any>(`${this.apiUrl}/getUsersByRole`, { params });
   }
   
-  // Search users with active status filter
-  public searchUsers(query: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
-    let params = new HttpParams()
-      .set('query', query)
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sortBy', sortBy)
-      .set('direction', direction)
-      .set('activeOnly', activeOnly.toString());
-      
-    return this.httpclient.get<any>(`${this.apiUrl}/searchUsers`, { params });
-  }
+
   
   // Search users by role with active status filter
   public searchUsersByRole(role: string, query: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
@@ -123,7 +100,7 @@ export class UserService {
     return this.httpclient.get<any>(`${this.apiUrl}/searchUsersByRole`, { params });
   }
    
-  // Get a specific user by username
+ 
   public getUser(userName: string): Observable<UserDetailsProxy> {
     return this.httpclient.get<ApiResponse>(`${this.apiUrl}/getuser/${userName}`)
       .pipe(
@@ -136,15 +113,8 @@ export class UserService {
       );
   }
   
-  // Deactivate a user (soft delete)
-  public deactivateUser(userName: string): Observable<ApiResponse> {
-    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/deactivateUser/${userName}`, {});
-  }
+ 
   
-  // Reactivate a user
-  public reactivateUser(userName: string): Observable<ApiResponse> {
-    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/reactivateUser/${userName}`, {});
-  }
   
   // Hard delete a user (kept for admin purposes, but should be used cautiously)
   public deleteUser(userName: string): Observable<ApiResponse> {
@@ -156,10 +126,6 @@ export class UserService {
     return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUser`, userData);
   }
   
-  // Generate fake users for testing
-  public generateFakeUsers(): Observable<ApiResponse> {
-    return this.httpclient.get<ApiResponse>(`${this.apiUrl}/generate-fake-users`);
-  }
   
   // Get image URL from UUID
   public getImageUrl(imageUuid: string): string {
@@ -174,38 +140,8 @@ export class UserService {
     
     return this.httpclient.post<ApiResponse>(`${this.apiUrl}/uploadUserImage`, formData);
   }
-  
-  // Get user statistics
-  public getUserStats(): Observable<any> {
-    return this.httpclient.get<any>(`${this.apiUrl}/userStats`);
-  }
-  
-  // Export users to Excel (server-side if implemented)
-  public exportUsersToExcel(): Observable<Blob> {
-    return this.httpclient.get(`${this.apiUrl}/exportUsers`, {
-      responseType: 'blob'
-    });
-  }
-  
-  // Additional helper methods for the admin panel
-  
-  // Get user roles for dropdown
-  public getAllRoles(): Observable<any> {
-    return this.httpclient.get<any>(`${this.apiUrl}/getAllRoles`);
-  }
-  
-  // Check if username exists
-  public checkUsernameExists(userName: string): Observable<boolean> {
-    return this.httpclient.get<boolean>(`${this.apiUrl}/checkUsername/${userName}`);
-  }
-  
-  // Check if email exists
-  public checkEmailExists(email: string): Observable<boolean> {
-    return this.httpclient.get<boolean>(`${this.apiUrl}/checkEmail/${email}`);
-  }
 
-  // Password reset and forgot password functionality
-  
+
   // Send password reset email
   public sendEmail(email: string): Observable<string> {
     const emailRequest = { email: email };
