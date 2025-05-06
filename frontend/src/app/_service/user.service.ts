@@ -1,4 +1,5 @@
 
+
 import { Injectable } from '@angular/core';
 import { UserAuthServiceService } from './user-auth-service.service';
 import { map, Observable } from 'rxjs';
@@ -10,7 +11,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:9090'; // Adjust this to your API URL
+  private apiUrl = 'http://localhost:9099'; // Adjust this to your API URL
   requestHeader = new HttpHeaders({ 'No-Auth': 'True' });
   
   constructor(
@@ -83,6 +84,18 @@ export class UserService {
     return this.httpclient.get<any>(`${this.apiUrl}/getAllUsersPageWise`, { params });
   }
   
+  // Get users by role with pagination
+  public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+    let params = new HttpParams()
+      .set('role', role)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+      
+    return this.httpclient.get<any>(`${this.apiUrl}/getUsersByRole`, { params });
+  }
+  
   // Search users
   public searchUsers(query: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
     let params = new HttpParams()
@@ -95,6 +108,19 @@ export class UserService {
     return this.httpclient.get<any>(`${this.apiUrl}/searchUsers`, { params });
   }
   
+  // Search users by role
+  public searchUsersByRole(role: string, query: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+    let params = new HttpParams()
+      .set('role', role)
+      .set('query', query)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+      
+    return this.httpclient.get<any>(`${this.apiUrl}/searchUsersByRole`, { params });
+  }
+   
   // Get a specific user by username
   public getUser(userName: string): Observable<UserDetailsProxy> {
     return this.httpclient.get<ApiResponse>(`${this.apiUrl}/getuser/${userName}`)
@@ -118,10 +144,7 @@ export class UserService {
     return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUser`, userData);
   }
   
-  // Update user role
-  public updateUserRole(userName: string, roleId: string): Observable<ApiResponse> {
-    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUserRole/${userName}/${roleId}`, {});
-  }
+ 
   
   // Generate fake users for testing
   public generateFakeUsers(): Observable<ApiResponse> {
@@ -203,8 +226,6 @@ export class UserService {
       headers: this.requestHeader
     });
   }
-
-  
 
   validateResetToken(token: string): Observable<any> {
     return this.httpclient.get(`${this.apiUrl}/validate-token/${token}`);

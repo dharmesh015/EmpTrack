@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../_service/user.service';
@@ -14,7 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-admin',
-  standalone:false,
+  standalone: false,
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
 })
@@ -38,6 +37,10 @@ export class AdminComponent implements OnInit {
   loading = true;
   error = '';
 
+  // Add role filter property
+  selectedRole: string = 'USER'; // Default role filter
+  roles: string[] = ['USER', 'ADMIN']; // Available roles
+
   constructor(
     private router: Router,
     private userservice: UserService,
@@ -50,6 +53,11 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
   }
   
+  // Get management title based on selected role
+  getManagementTitle(): string {
+    return this.selectedRole === 'ADMIN' ? 'Admin Management' : 'User Management';
+  }
+
   imageUrls: Map<string, string> = new Map<string, string>();
 
   getImageUrl(imageUuid: string): string {
@@ -64,7 +72,8 @@ export class AdminComponent implements OnInit {
       this.performGlobalSearch();
     } else {
       this.isGlobalSearch = false;
-      this.userservice.getAllUsersPageWise(this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+      // Update to include role filter
+      this.userservice.getUsersByRole(this.selectedRole, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
         next: (data: any) => {
           this.handleUserDataResponse(data);
         },
@@ -75,10 +84,18 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  // Change role filter
+  changeRole(role: string): void {
+    this.selectedRole = role;
+    this.page = 0; // Reset to first page
+    this.loadUsers();
+  }
+
   performGlobalSearch(): void {
     this.loading = true;
     
-    this.userservice.searchUsers(this.searchTerm, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+    // Update search to include role filter
+    this.userservice.searchUsersByRole(this.selectedRole, this.searchTerm, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
       next: (data: any) => {
         this.handleUserDataResponse(data);
       },
@@ -297,27 +314,7 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Change user role
-  changeUserRole(userName: string, roleId: string): void {
-    this.userservice.updateUserRole(userName, roleId).subscribe({
-      next: (response: any) => {
-        this.snackBar.open('User role updated successfully', 'Close', {
-          duration: 3000
-        });
-        this.loadUsers();
-      },
-      error: (error) => {
-        this.handleError(error, 'Error updating user role');
-      }
-    });
-  }
-
-  // Generate fake users for testing
  
-
-  // Download user data as Excel
- 
-
   getInitials(name: string): string {
     if (!name) return '?';
     
@@ -344,63 +341,57 @@ export class AdminComponent implements OnInit {
     return colors[Math.abs(hash) % colors.length];
   }
   
-  // Add these two methods to your AdminComponent class
-
-/**
- * Calculate the serial number for each row based on current page and index
- */
-getSerialNumber(index: number): number {
-  return this.page * this.size + index + 1;
-}
-
-
-formatDate(dateString: string | undefined): string {
-  if (!dateString) return 'N/A';
-  
-  try {
-    const date = new Date(dateString);
-    
-    if (isNaN(date.getTime())) {
-      return 'Invalid Date';
-    }
-    
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    
-    return `${day}/${month}/${year}`;
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return 'Error';
+  getSerialNumber(index: number): number {
+    return this.page * this.size + index + 1;
   }
-}
 
-downloadExcel(): void {
-  this.http.get('http://localhost:9090/download', { 
-    responseType: 'blob' 
-  }).subscribe({
-    next: (data: Blob) => {
-      const blob = new Blob([data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'users_data.xlsx';
-      link.click();
-      window.URL.revokeObjectURL(url);
-      // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
-      Swal.fire({
-        title: 'Success',
-        text: 'Excel file downloaded successfully',
-        icon: 'success'
-      });
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
       
-    },
-    error: (error) => {
-      console.error('Error downloading Excel file', error);
-      this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Error';
     }
-  });
-}
+  }
+
+  downloadExcel(): void {
+    this.http.get('http://localhost:9099/download', { 
+      responseType: 'blob' 
+    }).subscribe({
+      next: (data: Blob) => {
+        const blob = new Blob([data], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'users_data.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+        // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
+        Swal.fire({
+          title: 'Success',
+          text: 'Excel file downloaded successfully',
+          icon: 'success'
+        });
+        
+      },
+      error: (error) => {
+        console.error('Error downloading Excel file', error);
+        this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
+      }
+    });
+  }
 }
