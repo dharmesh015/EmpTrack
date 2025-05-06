@@ -11,7 +11,6 @@ import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.ecom.configuration.enums.Gender;
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +22,6 @@ public class User {
 	
 	@Column(nullable = false)
 	private String name;
-	
 	
 	@Column(nullable = false)
 	private LocalDate dob;
@@ -51,22 +49,23 @@ public class User {
 	
 	@Column(name = "pin_code", nullable = false)
 	private String pinCode;
-
+	
+	@Column(name = "active", nullable = false)
+	private boolean active = true; // Default to active
+	
 	@ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.ALL, CascadeType.REMOVE })
 	@JoinTable(name = "USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
 			@JoinColumn(name = "ROLE_ID") })
 	private Set<Role> role;
-
+	
 	@CreationTimestamp
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
-
+	
 	@UpdateTimestamp
 	@Column(name = "modified_at")
 	private LocalDateTime modifiedAt;
-
-
-
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "nrole_id", nullable = false)
 	private Role nrole;

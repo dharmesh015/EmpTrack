@@ -27,7 +27,6 @@ import com.ecom.proxy.UserProxy;
 import com.ecom.service.AdminService;
 import com.ecom.util.MapperUtil;
 import com.github.javafaker.Faker;
-
 @Service
 public class AdminServiceImpl implements AdminService {
     
@@ -45,8 +44,8 @@ public class AdminServiceImpl implements AdminService {
     
     @Override
     public Page<?> getAllUsersPageWise(PageRequest pageable) {
-        // Find users with role USER using the pageable which now includes sorting
-        Page<User> allByRoleName = userDao.findByRole_RoleName("USER", pageable);
+        // Find active users with role USER using the pageable which now includes sorting
+        Page<User> allByRoleName = userDao.findByRole_RoleNameAndActiveTrue("USER", pageable);
         
         // Convert to UserProxy and return the page
         return new PageImpl<>(
@@ -58,8 +57,8 @@ public class AdminServiceImpl implements AdminService {
     
     @Override
     public Page<?> getUsersByRole(String role, PageRequest pageable) {
-        // Find users with specified role using the pageable
-        Page<User> usersByRole = userDao.findByRole_RoleName(role, pageable);
+        // Find active users with specified role using the pageable
+        Page<User> usersByRole = userDao.findByRole_RoleNameAndActiveTrue(role, pageable);
         
         // Convert to UserProxy and return the page
         return new PageImpl<>(
@@ -75,8 +74,7 @@ public class AdminServiceImpl implements AdminService {
             return getUsersByRole(role, pageable);
         }
         
-        // This assumes you have a searchUsersByRole method in your UserDao
-        // If not, you'll need to add it (see implementation below)
+        // This now only returns active users
         Page<User> searchResults = userDao.searchUsersByRole(role, query, pageable);
         
         return new PageImpl<>(
@@ -91,8 +89,10 @@ public class AdminServiceImpl implements AdminService {
     public void deleteUser(String userName) {
         User user = userDao.findByUserName(userName)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        user.getRole().clear();
-        userDao.delete(user);
+        
+        // Instead of deleting, just set the active status to false
+        user.setActive(false);
+        userDao.save(user);
     }
     
     @Override
@@ -107,6 +107,7 @@ public class AdminServiceImpl implements AdminService {
         updatedUser.setId(existingUser.getId());
         updatedUser.setRole(existingUser.getRole());
         updatedUser.setCreatedAt(existingUser.getCreatedAt());
+        updatedUser.setActive(existingUser.isActive()); // Preserve active status
         
         // If password is empty, keep the existing one
         if (updatedUser.getPassword() == null || updatedUser.getPassword().isEmpty()) {
@@ -146,7 +147,6 @@ public class AdminServiceImpl implements AdminService {
         Faker faker = new Faker();
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         int count = 0;
-
         try {
             for (int i = 1; i <= 105; i++) {
                 // Create new user
@@ -163,7 +163,8 @@ public class AdminServiceImpl implements AdminService {
                 user.setPinCode(faker.address().zipCode());
                 user.setCreatedAt(LocalDateTime.now());
                 user.setModifiedAt(LocalDateTime.now());
-
+                user.setActive(true); // Set as active by default
+                
                 // Assign role to user (assuming you are assigning a role with ID 2, as per your previous logic)
                 Role role = roleDao.findById(2L).orElseThrow(() -> new RuntimeException("Role not found"));
                 Set<Role> userRoles = new HashSet<>();
@@ -172,7 +173,6 @@ public class AdminServiceImpl implements AdminService {
                 
                 // Optionally, set the 'nrole' association if needed (assuming 'nrole' is the primary role)
                 user.setNrole(role);
-
                 // Save the user
                 User savedUser = userDao.save(user);
                 count++;
@@ -198,5 +198,34 @@ public class AdminServiceImpl implements AdminService {
         return userDao.findByEmail(email).isPresent();
     }
     
+    // Add methods to reactivate users or get inactive users if needed
+    @Override
+    public String reactivateUser(String userName) {
+        User user = userDao.findByUserName(userName)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(true);
+        userDao.save(user);
+        return "User reactivated successfully";
+    }
     
+   
+
+	@Override
+	public Page<?> searchUsersByRole(String role, String query, PageRequest pageable, boolean activeOnly) {
+        Page<User> users;
+
+        if (activeOnly) {
+            users = userDao.searchUsersByRoleAndActiveTrue(role, query, pageable);
+        } else {
+            users = userDao.searchUsersByRole(role, query, pageable); // This one searches without filtering by active status
+        }
+
+        return new PageImpl<>(
+            mapperUtil.convertList(users.getContent(), UserProxy.class),
+            pageable,
+            users.getTotalElements()
+        );
+
+	}
+
 }

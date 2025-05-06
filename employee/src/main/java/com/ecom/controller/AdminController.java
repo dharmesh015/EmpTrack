@@ -73,6 +73,7 @@ public class AdminController {
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) {
         
+    	System.err.println("come");
         try {
             Sort sort = direction.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : 
@@ -226,5 +227,46 @@ public class AdminController {
         }
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/reactivateUser/{userName}")
+    public ResponseEntity<?> reactivateUser(@PathVariable("userName") String userName) {
+        try {
+            String result = adminService.reactivateUser(userName);
+            return ResponseEntity.ok(
+                new ApiResponse(HttpStatus.OK.value(), "Success", result));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
+                    "Error", "Failed to reactivate user: " + e.getMessage()));
+        }
+    }
+    
+    
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping("/searchUsersByRole")
+    public ResponseEntity<?> searchUsersByRole(
+            @RequestParam String role,
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(defaultValue = "true") boolean activeOnly) {
+
+        try {
+            Sort sort = direction.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            PageRequest pageable = PageRequest.of(page, size, sort);
+            
+            Page<?> pageData = adminService.searchUsersByRole(role, query, pageable, activeOnly);
+            return ResponseEntity.ok(pageData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Error", "Failed to search users by role: " + e.getMessage()));
+        }
+    }
+
    
 }

@@ -62,6 +62,8 @@ public class UserProxy {
 	@NotBlank(message = "Pin code is required")
 	@Pattern(regexp = "^[0-9]{6}$", message = "Pin code must be 6 digits")
 	private String pinCode;
+	
+	private boolean active;
 
 	private Set<RoleProxy> role;
 

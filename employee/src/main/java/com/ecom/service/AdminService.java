@@ -7,9 +7,7 @@ import org.springframework.data.domain.PageRequest;
 
 import com.ecom.entity.Role;
 import com.ecom.proxy.UserProxy;
-
 public interface AdminService {
-
     Page<?> getAllUsersPageWise(PageRequest pageable);
     
     Page<?> getUsersByRole(String role, PageRequest pageable);
@@ -32,4 +30,8 @@ public interface AdminService {
     
     boolean checkEmailExists(String email);
     
+    // New method to reactivate a user
+    String reactivateUser(String userName);
+
+	Page<?> searchUsersByRole(String role, String query, PageRequest pageable, boolean activeOnly);
 }

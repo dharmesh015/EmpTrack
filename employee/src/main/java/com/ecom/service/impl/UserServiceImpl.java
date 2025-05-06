@@ -299,6 +299,7 @@ public class UserServiceImpl implements UserService {
         
         userProxy.setId(null);
         userProxy.setNrole(role);
+        userProxy.setActive(true);
         User user = mapper.convertValue(userProxy, User.class);
         
         try {
