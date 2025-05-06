@@ -142,20 +142,22 @@ export class UserService {
   }
 
 
-  // Send password reset email
-  public sendEmail(email: string): Observable<string> {
+
+  public sendEmail(email: string): Observable<ApiResponse> {
     const emailRequest = { email: email };
-    return this.httpclient.post(`${this.apiUrl}/send-email`, emailRequest, {
-      headers: this.requestHeader,
-      responseType: 'text'
+    return this.httpclient.post<ApiResponse>(`${this.apiUrl}/send-email`, emailRequest, {
+      headers: this.requestHeader
     });
   }
 
   // Reset password with token
-  public resetPassword(token: string, newPassword: string): Observable<string> {
-    return this.httpclient.get(`${this.apiUrl}/reset-password/${token}/${newPassword}`, {
-      responseType: 'text'
-    });
+  public resetPassword(token: string, newPassword: string): Observable<ApiResponse> {
+    return this.httpclient.get<ApiResponse>(`${this.apiUrl}/reset-password/${token}/${newPassword}`);
+  }
+
+  // Validate reset token
+  public validateResetToken(token: string): Observable<ApiResponse> {
+    return this.httpclient.get<ApiResponse>(`${this.apiUrl}/validate-token/${token}`);
   }
 
   // Get CAPTCHA image
@@ -173,7 +175,5 @@ export class UserService {
     });
   }
 
-  validateResetToken(token: string): Observable<any> {
-    return this.httpclient.get(`${this.apiUrl}/validate-token/${token}`);
-  }
+  
 }
