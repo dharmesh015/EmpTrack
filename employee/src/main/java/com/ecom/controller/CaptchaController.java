@@ -27,6 +27,7 @@ public class CaptchaController {
 
  
 		response.setContentType("image/png");
+		System.err.println("captcha--ok"+session.getAttribute(captchaToken));
 		try {
 			cage.draw(captchaToken, response.getOutputStream());
 		} catch (java.io.IOException e) {

@@ -1,14 +1,10 @@
-package com.ecom.proxy;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+package com.ecom.proxy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import io.micrometer.common.lang.NonNull;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -20,8 +16,12 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(Include.NON_NULL)
 public class RoleProxy {
-
-	private String roleName;
-	private String roleDescription;
+    private Long id;
+    
+    @NotBlank(message = "Role name is required")
+    private String roleName;
+    
+    private String roleDescription;
 }

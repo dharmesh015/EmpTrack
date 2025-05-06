@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 import com.ecom.entity.Role;
 
 @Repository
-public interface RoleDao extends CrudRepository<Role, String> {
+public interface RoleDao extends CrudRepository<Role, Long> {
 	Optional<Role> findByRoleName(String roleName);
 }
