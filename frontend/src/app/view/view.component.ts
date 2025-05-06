@@ -5,12 +5,11 @@ import { UserDetailsProxy } from '../modul/user-details-proxy';
 
 @Component({
   selector: 'app-view',
-  standalone: false,
+  standalone:false,
   templateUrl: './view.component.html',
-  styleUrl: './view.component.css'
+  styleUrls: ['./view.component.css']
 })
 export class ViewComponent implements OnInit {
-  userName: string;
   userData: UserDetailsProxy = new UserDetailsProxy();
   loading = true;
   error = false;
@@ -20,25 +19,34 @@ export class ViewComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private userservice: UserService
   ) {
-    this.userName = data.userName;
+    // The data should already be passed from the admin component
+    if (this.data) {
+      this.userData = this.data;
+      this.loading = false;
+    }
   }
 
   ngOnInit(): void {
-    this.fetchUserData();
+    // If data wasn't passed or we need to refetch
+    if (!this.userData.userName && this.data.userName) {
+      this.fetchUserData(this.data.userName);
+    }
   }
 
-  fetchUserData(): void {
-    this.userservice.getUserByName(this.userName).subscribe(
-      (response: any) => {
+  fetchUserData(userName: string): void {
+    this.loading = true;
+    this.userservice.getUser(userName).subscribe({
+      next: (response: any) => {
+        console.log('User data received:', response);
         this.userData = response;
         this.loading = false;
       },
-      (error) => {
+      error: (error) => {
         console.error('Error fetching user data:', error);
         this.loading = false;
         this.error = true;
       }
-    );
+    });
   }
 
   onClose(): void {
@@ -46,8 +54,7 @@ export class ViewComponent implements OnInit {
   }
 
   getImageUrl(): string {
-    if (! this.userData.imageUuid) return '';
-    console.log(this.userservice.getImageUrl( this.userData.imageUuid));
+    if (!this.userData.imageUuid) return '';
     return this.userservice.getImageUrl(this.userData.imageUuid);
   }
 }

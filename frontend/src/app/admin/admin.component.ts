@@ -1,5 +1,4 @@
 
-
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../_service/user.service';
@@ -11,12 +10,13 @@ import { ViewComponent } from '../view/view.component';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+// import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-admin',
-  standalone: false,
+  standalone:false,
   templateUrl: './admin.component.html',
-  styleUrl: './admin.component.css',
+  styleUrls: ['./admin.component.css'],
 })
 export class AdminComponent implements OnInit {
   filteredUsers: UserDetailsProxy[] = [];
@@ -27,7 +27,10 @@ export class AdminComponent implements OnInit {
   searchTerm: string = '';
   isGlobalSearch: boolean = false;
   
-  // New properties for enhanced pagination
+  // Sorting properties
+  sortBy: string = 'name';
+  sortDirection: string = 'asc';
+  
   totalPages: number = 0;
   paginationArray: number[] = [];
 
@@ -51,7 +54,6 @@ export class AdminComponent implements OnInit {
 
   getImageUrl(imageUuid: string): string {
     if (!imageUuid) return '';
-    console.log(this.userservice.getImageUrl(imageUuid));
     return this.userservice.getImageUrl(imageUuid);
   }
 
@@ -62,33 +64,33 @@ export class AdminComponent implements OnInit {
       this.performGlobalSearch();
     } else {
       this.isGlobalSearch = false;
-      this.userservice.getAllUsersPageWise(this.page, this.size).subscribe(
-        (data: any) => {
+      this.userservice.getAllUsersPageWise(this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+        next: (data: any) => {
           this.handleUserDataResponse(data);
         },
-        (error: any) => {
+        error: (error: any) => {
           this.handleError(error, 'Error fetching users');
         }
-      );
+      });
     }
   }
 
   performGlobalSearch(): void {
     this.loading = true;
     
-    this.userservice.searchUsers(this.searchTerm, this.page, this.size).subscribe(
-      (data: any) => {
+    this.userservice.searchUsers(this.searchTerm, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+      next: (data: any) => {
         this.handleUserDataResponse(data);
       },
-      (error: any) => {
+      error: (error: any) => {
         this.handleError(error, 'Error searching users');
       }
-    );
+    });
   }
 
   globalSearch(): void {
     if (this.searchTerm && this.searchTerm.trim() !== '') {
-      this.page = 0; // Reset to first page
+      this.page = 0; 
       this.isGlobalSearch = true;
       this.performGlobalSearch();
     } else {
@@ -96,165 +98,99 @@ export class AdminComponent implements OnInit {
       this.loadUsers();
     }
   }
+  
   resetSearch(): void {
     // Clear the search text
     this.searchTerm = '';
- 
     // Reset to first page
     this.page = 0; 
- 
+    // Reset global search flag
+    this.isGlobalSearch = false;
     // Reload users
     this.loadUsers();
   }
-  handleUserDataResponse(data: any): void {
-    this.user = data.content.map((obj: any) => {
-      const roleName = obj.role.length > 0 ? obj.role[0].roleName : 'USER'; 
-      obj.accessRole = roleName;
-      return obj; 
-    });
+  
+  // Sort handling
+  sort(column: string): void {
+    if (this.sortBy === column) {
+      // Toggle sort direction if clicking on same column
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Default to ascending for new column
+      this.sortBy = column;
+      this.sortDirection = 'asc';
+    }
     
-    this.totalUsers = data.totalElements;
-    this.totalPages = Math.ceil(this.totalUsers / this.size);
-    this.updatePaginationArray();
-    this.filteredUsers = this.user;
-    this.hasMoreUsers = this.page < this.totalPages - 1;
-    this.loading = false;
+    // Reset to first page when sorting changes
+    this.page = 0;
+    this.loadUsers();
   }
   
-  handleError(error: any, message: string): void {
-    console.error(message, error);
-    Swal.fire(
-      'Error',
-      `${message}. Please try again later.`,
-      'error'
-    );
-    this.loading = false;
+  // Get sort arrow indicator
+  getSortIndicator(column: string): string {
+    if (this.sortBy !== column) return '';
+    return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
-  // New method to update pagination array
-  updatePaginationArray(): void {
+  // Handle user data response
+  handleUserDataResponse(data: any): void {
+    this.loading = false;
+    this.filteredUsers = data.content;
+    this.totalUsers = data.totalElements;
+    this.totalPages = data.totalPages;
+    this.updatePagination();
+  }
+
+  // Handle error responses
+  handleError(error: any, message: string): void {
+    this.loading = false;
+    console.error(error);
+    this.error = message;
+    this.snackBar.open(`${message}: ${error.message || 'Unknown error'}`, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  // Update pagination array for UI
+  updatePagination(): void {
     this.paginationArray = [];
+    const maxVisible = 5; // Maximum number of page buttons to show
     
-    // For small number of pages, show all
-    if (this.totalPages <= 7) {
+    if (this.totalPages <= maxVisible) {
+      // Show all pages if total is less than or equal to maxVisible
       for (let i = 0; i < this.totalPages; i++) {
         this.paginationArray.push(i);
       }
     } else {
-      // For many pages, show first, last, and pages around current
-      if (this.page < 3) {
-        // Near start
-        for (let i = 0; i < 5; i++) {
-          this.paginationArray.push(i);
-        }
-        this.paginationArray.push(-1); // Ellipsis
-        this.paginationArray.push(this.totalPages - 1);
-      } else if (this.page > this.totalPages - 4) {
-        // Near end
-        this.paginationArray.push(0);
-        this.paginationArray.push(-1); // Ellipsis
-        for (let i = this.totalPages - 5; i < this.totalPages; i++) {
-          this.paginationArray.push(i);
-        }
-      } else {
-        // Middle
-        this.paginationArray.push(0);
-        this.paginationArray.push(-1); // Ellipsis
-        for (let i = this.page - 1; i <= this.page + 1; i++) {
-          this.paginationArray.push(i);
-        }
-        this.paginationArray.push(-1); // Ellipsis
-        this.paginationArray.push(this.totalPages - 1);
+      // Always include first page
+      this.paginationArray.push(0);
+      
+      // Current page neighborhood
+      const startNeighborhood = Math.max(1, this.page - 1);
+      const endNeighborhood = Math.min(this.totalPages - 2, this.page + 1);
+      
+      // Add ellipsis if needed before neighborhood
+      if (startNeighborhood > 1) {
+        this.paginationArray.push(-1); // -1 represents ellipsis
       }
-    }
-  }
-
-  goToPage(pageNum: number): void {
-    if (pageNum >= 0 && pageNum < this.totalPages) {
-      this.page = pageNum;
-      this.loadUsers();
-    }
-  }
-
-  filterUsers(): void {
-    if (!this.isGlobalSearch && this.searchTerm) {
-      this.filteredUsers = this.user.filter((user) =>
-        (user.userName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-         user.name?.toLowerCase().includes(this.searchTerm.toLowerCase()) || 
-         user.email?.toLowerCase().includes(this.searchTerm.toLowerCase()))
-      );
-    } else {
-      this.filteredUsers = this.user;
-    }
-  }
-
-  editUser(username: string): void {
-    const editdialog = this.dialog.open(UpdateUserDialogComponent, {
-      data: { userName: username },
-      width: '500px',
-      disableClose: true,
-    });
-
-    editdialog.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadUsers();
+      
+      // Add neighborhood pages
+      for (let i = startNeighborhood; i <= endNeighborhood; i++) {
+        this.paginationArray.push(i);
       }
-    });
-  }
-
-  view(username: string): void {
-    const editdialog = this.dialog.open(ViewComponent, {
-      data: { userName: username },
-      width: '500px',
-      height:"500px",
-      disableClose: true,
-    });
-
-    editdialog.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadUsers();
+      
+      // Add ellipsis if needed after neighborhood
+      if (endNeighborhood < this.totalPages - 2) {
+        this.paginationArray.push(-1); // -1 represents ellipsis
       }
-    });
-  }
-
-  deleteUser(name: string, role: string): void {
-    if (role !== 'ADMIN') {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        confirmButtonColor: "#db2e2e",
-        cancelButtonText: 'No, cancel!',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.userservice.deleteUser(name).subscribe(
-            () => {
-              Swal.fire('Deleted!', 'User has been deleted.', 'success');
-              this.loadUsers();
-            },
-            (error: any) => {
-              Swal.fire(
-                'Error!',
-                'There was an error deleting the user.',
-                'error'
-              );
-              console.error('Error deleting user', error);
-            }
-          );
-        }
-      });
-    } else {
-      Swal.fire({
-        title: 'Warning',
-        text: 'You cannot delete admin accounts!',
-        icon: 'warning',
-        confirmButtonText: 'OK',
-      });
+      
+      // Always include last page
+      this.paginationArray.push(this.totalPages - 1);
     }
   }
 
+  // Navigation methods
   previousPage(): void {
     if (this.page > 0) {
       this.page--;
@@ -268,19 +204,119 @@ export class AdminComponent implements OnInit {
       this.loadUsers();
     }
   }
+
+  goToPage(pageNum: number): void {
+    this.page = pageNum;
+    this.loadUsers();
+  }
+
+  // View user details
+  view(userName: string): void {
+    this.loading = true;
+    this.userservice.getUser(userName).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        console.log('View user response:', response);
+        
+        // Open dialog with the user data
+        const dialogRef = this.dialog.open(ViewComponent, {
+          width: '600px',
+          data: response
+        });
+      },
+      error: (error) => {
+        this.loading = false;
+        this.handleError(error, 'Error fetching user details');
+      }
+    });
+  }
+
+  // Edit user
+  editUser(userName: string): void {
+    this.loading = true;
+    this.userservice.getUser(userName).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        console.log('Edit user response:', response);
+        
+        // Open dialog with the user data
+        const dialogRef = this.dialog.open(UpdateUserDialogComponent, {
+          width: '600px',
+          data: response
+        });
   
-  openAddUserDialog(): void {
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            // Reload users if the update was successful
+            this.loadUsers();
+          }
+        });
+      },
+      error: (error) => {
+        this.loading = false;
+        this.handleError(error, 'Error fetching user details for editing');
+      }
+    });
+  }
+
+  // Delete user
+  deleteUser(userName: string, role: string): void {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete user "${userName}". This action cannot be undone!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userservice.deleteUser(userName).subscribe({
+          next: (response: any) => {
+            Swal.fire('Deleted!', 'User has been deleted successfully.', 'success');
+            this.loadUsers();
+          },
+          error: (error) => {
+            Swal.fire('Error!', `Failed to delete user: ${error.message || 'Unknown error'}`, 'error');
+          }
+        });
+      }
+    });
+  }
+
+  // Add new user
+  addNewUser(): void {
     const dialogRef = this.dialog.open(AddUserDialogComponent, {
-      width: '300px',
-      disableClose: true,
+      width: '600px'
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadUsers();
       }
     });
   }
+
+  // Change user role
+  changeUserRole(userName: string, roleId: string): void {
+    this.userservice.updateUserRole(userName, roleId).subscribe({
+      next: (response: any) => {
+        this.snackBar.open('User role updated successfully', 'Close', {
+          duration: 3000
+        });
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.handleError(error, 'Error updating user role');
+      }
+    });
+  }
+
+  // Generate fake users for testing
+ 
+
+  // Download user data as Excel
+ 
 
   getInitials(name: string): string {
     if (!name) return '?';
@@ -307,33 +343,64 @@ export class AdminComponent implements OnInit {
     
     return colors[Math.abs(hash) % colors.length];
   }
+  
+  // Add these two methods to your AdminComponent class
 
-  downloadExcel(): void {
-    this.http.get('http://localhost:9090/api/users/download', { 
-      responseType: 'blob' 
-    }).subscribe({
-      next: (data: Blob) => {
-        const blob = new Blob([data], { 
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-        });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'users_data.xlsx';
-        link.click();
-        window.URL.revokeObjectURL(url);
-        // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
-        Swal.fire({
-          title: 'Success',
-          text: 'Excel file downloaded successfully',
-          icon: 'success'
-        });
-        
-      },
-      error: (error) => {
-        console.error('Error downloading Excel file', error);
-        this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
-      }
-    });
+/**
+ * Calculate the serial number for each row based on current page and index
+ */
+getSerialNumber(index: number): number {
+  return this.page * this.size + index + 1;
+}
+
+
+formatDate(dateString: string | undefined): string {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Error';
   }
+}
+
+downloadExcel(): void {
+  this.http.get('http://localhost:9090/download', { 
+    responseType: 'blob' 
+  }).subscribe({
+    next: (data: Blob) => {
+      const blob = new Blob([data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'users_data.xlsx';
+      link.click();
+      window.URL.revokeObjectURL(url);
+      // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
+      Swal.fire({
+        title: 'Success',
+        text: 'Excel file downloaded successfully',
+        icon: 'success'
+      });
+      
+    },
+    error: (error) => {
+      console.error('Error downloading Excel file', error);
+      this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
+    }
+  });
+}
 }

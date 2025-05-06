@@ -337,36 +337,8 @@
                 </div>
               </div>
 
-              <div class="form-outline mb-4">
-                <!-- <img [src]="captchaUrl" alt="CAPTCHA" *ngIf="captchaUrl" /> -->
-                <img  *ngIf="captchaUrl"
-                  [src]="captchaUrl"
-                  (error)="handleImageError()"
-                  alt="CAPTCHA"
-                />
-                <div *ngIf="!captchaUrl" class="captcha-loading">
-                  Loading captcha...
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-link btn-sm"
-                  (click)="ReloadCaptcha()"
-                  style="margin-top: 8px"
-                >
-                  🔄
-                </button>
-
-                <input
-                  type="text"
-                  id="captcha"
-                  name="captcha"
-                  class="form-control"
-                  placeholder="Enter CAPTCHA"
-                  #captcha="ngModel"
-                  ngModel
-                  required
-                />
-              </div>
+         
+                
               <div class="mt-4">
                 <button
                   type="submit"

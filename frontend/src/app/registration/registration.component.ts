@@ -1,3 +1,4 @@
+
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,13 +17,13 @@ import { UserDetailsProxy } from '../modul/user-details-proxy';
 export class RegistrationComponent {
   userData: UserDetailsProxy = new UserDetailsProxy();
   selectedFile: File | null = null;
+  isLoading = false;
+  
   constructor(
     private userService: UserService,
     private router: Router,
     private userAuthServiceService: UserAuthServiceService
   ) {}
-
-  isLoading = false;
 
   onSubmit(form: NgForm) {
     if (form.invalid) {
@@ -47,7 +48,6 @@ export class RegistrationComponent {
       this.isLoading = true;
 
       const formData = new FormData();
-
       formData.append('userData', JSON.stringify(this.userData));
 
       if (this.selectedFile) {
@@ -55,44 +55,72 @@ export class RegistrationComponent {
       }
 
       this.userService.registerWithImage(formData).subscribe(
-        (response) => {
-          if (response === 'UserNameExist') {
-            console.log('Username already exists!', response);
+        (response: any) => {
+          this.isLoading = false;
+          
+          if (response.code === 'UserNameExist') {
             Swal.fire({
               title: 'Username Already In Use',
-              text: 'The username you entered is already registered. Please use a different username or log in to your account.',
+              text: response.message || 'The username you entered is already registered. Please use a different username or log in to your account.',
               icon: 'warning',
             });
-            this.isLoading = false;
             return;
-          } else if (response === 'EmailExist') {
-            console.log('Email already exists!', response);
+          } else if (response.code === 'EmailExist') {
             Swal.fire({
               title: 'Email Already In Use',
-              text: 'The email address you entered is already registered. Please use a different email or log in to your account.',
+              text: response.message || 'The email address you entered is already registered. Please use a different email or log in to your account.',
               icon: 'warning',
             });
-            this.isLoading = false;
+            return;
+          } else if (response.code === 'InvalidGender') {
+            Swal.fire({
+              title: 'Invalid Gender',
+              text: response.message || 'Please select a valid gender.',
+              icon: 'warning',
+            });
+            return;
+          } else if (response.status >= 400) {
+            console.log("response.status--"+response.status)
+            Swal.fire({
+              title: 'Error',
+              text: response.message || 'Registration failed. Please check your form and try again.',
+              icon: 'error',
+            });
             return;
           }
-          console.log(response);
-          this.router.navigate(['/login']);
+          
+          // Success case
+          Swal.fire({
+            title: 'Registration Successful!',
+            text: 'Your account has been created successfully. Please log in.',
+            icon: 'success',
+          }).then(() => {
+            this.router.navigate(['/login']);
+          });
         },
         (error) => {
-          console.log('Registration failed', error);
+          this.isLoading = false;
+          console.error('Registration failed', error);
+          
+          let errorMessage = 'Registration failed. Please try again.';
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          }
+          
           Swal.fire({
             title: 'Error',
-            text: 'Registration failed. Please try again.',
+            text: errorMessage,
             icon: 'error',
           });
-          this.isLoading = false;
         }
       );
     }
   }
+  
   onFileSelected(event: any): void {
     this.selectedFile = event.target.files[0] ?? null;
   }
+  
   islogin(): boolean {
     return this.userAuthServiceService.isLoggedIn();
   }

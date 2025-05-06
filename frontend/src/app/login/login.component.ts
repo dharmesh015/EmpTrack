@@ -13,7 +13,7 @@ import { Requestuser } from '../modul/requestuser';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent  {
   captchaUrl: string = '';
   userdata: Requestuser = new Requestuser('', '');
   
@@ -24,112 +24,89 @@ export class LoginComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+ 
+  
 
-    if (!this.userAuthService.isLoggedIn()) {
-      this.loadCaptcha();
-    }
-  }
+ 
 
-  // loadCaptcha() {
-  //   this.loginService.getCaptchaImage().subscribe(
-  //     (response: Blob) => {
-  //       this.captchaUrl = URL.createObjectURL(response);
-  //       console.log(this.captchaUrl);
-  //     },
-  //     (error: { message: any; error: { message: any } }) => {
-  //       const errorMessage =
-  //         error.message || error.error?.message || 'Error fetching CAPTCHA image.';
-  //       Swal.fire({
-  //         icon: 'error',
-  //         title: 'Captcha not loading!',
-  //         text: errorMessage,
-  //         confirmButtonText: 'OK',
-  //       });
-  //     }
-  //   );
-  // }
-  loadCaptcha() {
-    const timestamp = new Date().getTime();
-    this.loginService.getCaptchaImage(timestamp).subscribe(
-      (response: Blob) => {
-        // Revoke previous URL if exists
-        if (this.captchaUrl) {
-          URL.revokeObjectURL(this.captchaUrl);
-        }
-        this.captchaUrl = URL.createObjectURL(response);
-      },
-      (error) => {
-        const errorMessage = error.message || error.error?.message || 'Error fetching CAPTCHA image.';
-        Swal.fire({
-          icon: 'error',
-          title: 'Captcha not loading!',
-          text: errorMessage,
-          confirmButtonText: 'OK',
-        });
-      }
-    );
-  }
 
-  ReloadCaptcha() {
-    this.loadCaptcha();
-  }
 
-  ngOnDestroy() {
-    if (this.captchaUrl) {
-      URL.revokeObjectURL(this.captchaUrl);
-    }
-  }
-  handleImageError() {
-    console.error('CAPTCHA image failed to load');
-    this.loadCaptcha(); // Try reloading on error
-  }
 
-  login(form: NgForm) {
-    if (form.valid) {
-      const captcha = form.value.captcha;
-      this.userdata.userName = form.value.username;
-      this.userdata.userPassword = form.value.password;
-      this.userdata.captcha = form.value.captcha;
-
-      this.loginService.login(this.userdata).subscribe(
-        (response: any) => {
-          console.log(response);
-          this.userAuthService.setRoles(response.user.role);
-          this.userAuthService.setToken(response.jwtToken);
-          this.userAuthService.setUser(response.user);
-
-          const role = response.user.role[0].roleName;
-          console.log("role--"+role)
-          if (role === 'ADMIN') {
-            this.router.navigate(['/admin']);
-          }  else {
-            this.router.navigate(['/home']);
-          }
-        },
-        (error) => {
-          if (error.error === 'InvalidCAPTCHA') {
-            Swal.fire({
-              title: 'Invalid CAPTCHA',
-              text: 'Please enter the correct CAPTCHA code.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-            });
-            this.ReloadCaptcha();
-          } else {
-            Swal.fire({
-              title: 'Invalid Credentials',
-              text: 'Please check your username and password.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-            });
-          }
-        }
-      );
-    }
-  }
 
   isloggin() {
     return !this.userAuthService.isLoggedIn();
   }
+
+  login(form: NgForm) {
+    if (form.invalid) {
+      Object.keys(form.controls).forEach((field) => {
+        const control = form.controls[field];
+        control.markAsTouched({ onlySelf: true });
+      });
+      return;
+    }
+  
+    const captcha = form.value.captcha;
+    this.userdata.userName = form.value.username;
+    this.userdata.userPassword = form.value.password;
+    this.userdata.captcha = captcha;
+  
+    this.loginService.login(this.userdata).subscribe(
+      (response: any) => {
+      
+        if (response.code === 'InvalidCredentials') {
+          Swal.fire({
+            title: 'Invalid Credentials',
+            text: response.message || 'Please check your username and password.',
+            icon: 'error',
+          });
+        
+          return;
+        }
+  
+        if (response.code === 'AuthenticationFailed') {
+          Swal.fire({
+            title: 'Authentication Failed',
+            text: response.message || 'An error occurred while logging in.',
+            icon: 'error',
+          });
+         
+          return;
+        }
+  
+        // Success case: JWT and user data received
+        this.userAuthService.setRoles(response.user.role);
+        this.userAuthService.setToken(response.jwtToken);
+        this.userAuthService.setUser(response.user);
+  
+        Swal.fire({
+          title: 'Login Successful!',
+          text: 'Welcome back!',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+  
+        const role = response.user.role[0].roleName;
+        if (role === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/home']);
+        }
+      },
+      (error) => {
+        console.error('Login error:', error);
+        let errorMessage = error.error?.message || 'Login failed. Please try again.';
+  
+        Swal.fire({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+        });
+  
+        
+      }
+    );
+  }
+  
 }

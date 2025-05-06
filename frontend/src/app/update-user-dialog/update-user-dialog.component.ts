@@ -8,14 +8,14 @@ import { UserDetailsProxy } from '../modul/user-details-proxy';
 
 @Component({
   selector: 'app-update-user-dialog',
-  standalone: false,
+  standalone:false,
   templateUrl: './update-user-dialog.component.html',
   styleUrl: './update-user-dialog.component.css',
 })
 export class UpdateUserDialogComponent implements OnInit {
   form!: FormGroup;
-  userName: string;
   userData: UserDetailsProxy = new UserDetailsProxy();
+  loading = false;
 
   constructor(
     public dialogRef: MatDialogRef<UpdateUserDialogComponent>,
@@ -24,11 +24,21 @@ export class UpdateUserDialogComponent implements OnInit {
     private userservice: UserService,
     private userAuth: UserAuthServiceService
   ) {
-    this.userName = data.userName;
+    // Initialize the form
+    this.initForm();
+    
+    // Set the user data if already provided
+    if (this.data) {
+      this.userData = this.data;
+      this.patchFormValues();
+    }
+  }
+
+  initForm(): void {
     this.form = this.fb.group({
       name: ['', Validators.required],
       dob: ['', Validators.required],
-      userName: [this.userName, Validators.required],
+      userName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       gender: ['', Validators.required],
       address: ['', Validators.required],
@@ -37,33 +47,47 @@ export class UpdateUserDialogComponent implements OnInit {
     });
   }
 
+  patchFormValues(): void {
+    if (this.userData) {
+      this.form.patchValue({
+        name: this.userData.name || '',
+        dob: this.userData.dob || '',
+        userName: this.userData.userName || '',
+        email: this.userData.email || '',
+        gender: this.userData.gender || '',
+        address: this.userData.address || '',
+        contactNumber: this.userData.contactNumber || '',
+        pinCode: this.userData.pinCode || '',
+      });
+    }
+  }
+
   ngOnInit(): void {
-    this.userservice.getUserByName(this.userName).subscribe(
-      (response: any) => {
-        this.userData = response;
-        
-        this.form.patchValue({
-          name: this.userData.name,
-          dob: this.userData.dob,
-          userName: this.userData.userName,
-          email: this.userData.email,
-          gender: this.userData.gender,
-          address: this.userData.address,
-          contactNumber: this.userData.contactNumber,
-          pinCode: this.userData.pinCode,
-       
-        });
-      },
-      (error) => {
-        console.error('Error fetching user data:', error);
-      }
-    );
+    // If we need to fetch user data (in case it wasn't passed properly)
+    if (!this.userData.userName && this.data?.userName) {
+      this.loading = true;
+      this.userservice.getUser(this.data.userName).subscribe({
+        next: (response: any) => {
+          console.log('Update user data received:', response);
+          this.userData = response;
+          this.patchFormValues();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching user data for update:', error);
+          this.loading = false;
+          Swal.fire('Error', 'Failed to load user data. Please try again.', 'error');
+        }
+      });
+    }
   }
 
   onSubmit(): void {
     if (this.form.valid) {
-      console.log('onsubmit----', this.form.value);
+      this.loading = true;
+      console.log('Submitting form:', this.form.value);
 
+      // Update userData with form values
       this.userData.name = this.form.value.name;
       this.userData.dob = this.form.value.dob;
       this.userData.userName = this.form.value.userName;
@@ -73,9 +97,17 @@ export class UpdateUserDialogComponent implements OnInit {
       this.userData.contactNumber = this.form.value.contactNumber;
       this.userData.pinCode = this.form.value.pinCode;
 
-      this.userservice.update(this.userData).subscribe((rs) => {
-        // this.popop();
-        this.dialogRef.close(true);
+      this.userservice.updateUser(this.userData).subscribe({
+        next: (response) => {
+          this.loading = false;
+          Swal.fire('Success', 'User updated successfully', 'success');
+          this.dialogRef.close(true);
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error updating user:', error);
+          Swal.fire('Error', 'Failed to update user. Please try again.', 'error');
+        }
       });
     }
   }
@@ -83,8 +115,4 @@ export class UpdateUserDialogComponent implements OnInit {
   onCancel(): void {
     this.dialogRef.close();
   }
-  popop() {
-    
-  }
-
 }

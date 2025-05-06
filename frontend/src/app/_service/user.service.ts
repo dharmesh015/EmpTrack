@@ -1,163 +1,212 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { catchError, map, Observable } from 'rxjs';
-import { Requestuser } from '../modul/requestuser';
-import { UserAuthServiceService } from './user-auth-service.service';
 
+import { Injectable } from '@angular/core';
+import { UserAuthServiceService } from './user-auth-service.service';
+import { map, Observable } from 'rxjs';
+import { ApiResponse } from '../modul/api-response';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
-;
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:9090';
-
-  requestHeader = new HttpHeaders({ 'Content-Type': 'application/json' });
+  private apiUrl = 'http://localhost:9090'; // Adjust this to your API URL
+  requestHeader = new HttpHeaders({ 'No-Auth': 'True' });
+  
   constructor(
     private httpclient: HttpClient,
     private userAuthService: UserAuthServiceService
   ) {}
-  userdata: Requestuser = new Requestuser('', '');
-
-  public login(data: Requestuser): Observable<any> {
-    console.log('Sending Data: ' + JSON.stringify(data));
-    return this.httpclient.post(this.apiUrl + '/authenticate', data, {
-      headers: this.requestHeader.append('No-Auth', 'True'),
-      withCredentials: true,
+  
+  public login(loginData: any) {
+    return this.httpclient.post(`${this.apiUrl}/authenticate`, loginData, {
+      headers: this.requestHeader,
     });
   }
-
+  
+  public forUser() {
+    return this.httpclient.get(`${this.apiUrl}/forUser`, {
+      responseType: 'text',
+    });
+  }
+  
+  public forAdmin() {
+    return this.httpclient.get(`${this.apiUrl}/forAdmin`, {
+      responseType: 'text',
+    });
+  }
+  
   public roleMatch(allowedRoles: string[]): boolean {
-    const userRoles = this.userAuthService.getRoles();
-
-    if (userRoles && userRoles.length > 0) {
-      for (const userRole of userRoles) {
-        if (allowedRoles.includes(userRole.roleName)) {
-          return true;
+    let isMatch = false;
+    const userRoles: any = this.userAuthService.getRoles();
+    if (userRoles != null && userRoles) {
+      for (let i = 0; i < userRoles.length; i++) {
+        for (let j = 0; j < allowedRoles.length; j++) {
+          if (userRoles[i].roleName === allowedRoles[j]) {
+            isMatch = true;
+            return isMatch;
+          }
         }
       }
     }
-    return false;
+    return isMatch;
   }
-
-  public register(data: UserDetailsProxy): Observable<string> {
-    console.log('Sending Data: ' + JSON.stringify(data));
-    return this.httpclient
-      .post(this.apiUrl + '/registerNewUser ', data, { responseType: 'text' })
-      .pipe(map((response) => response as string));
-  }
-
-  registerWithImage(formData: FormData): Observable<string> {
-    return this.httpclient.post(`${this.apiUrl}/registerWithImage`, formData,{ responseType: 'text' }).pipe(map((response) => response as string));
-  }
-
-  public getuser(): Observable<any> {
-    const token = this.userAuthService.getToken();
-    return this.httpclient
-      .get('http://localhost:9090/getdata/' + token, {
-        responseType: 'text',
-      })
-      .pipe(map((response) => response as string));
-  }
-
-  sendEmail(email: string, captcha: string): Observable<string> {
-    return this.httpclient.post(
-      `${this.apiUrl}/send-email/${email}/${captcha}`,
-      {}, 
+  
+  public register(userData: any): Observable<ApiResponse> {
+    return this.httpclient.post<ApiResponse>(
+      `${this.apiUrl}/registerNewUser`,
+      userData,
       {
-        headers: this.requestHeader.append('No-Auth', 'True'),
-        withCredentials: true, 
-        responseType: 'text'
+        headers: this.requestHeader,
       }
-    );}
-
-  resetPassword(token: string, newPassword: string): Observable<any> {
-    console.log(token, newPassword);
-    return this.httpclient
-      .get(`${this.apiUrl}/reset-password/${token}/${newPassword}`, {
-        responseType: 'text',
-      })
-      .pipe(map((response) => response as string));
+    );
   }
+  
+  public registerWithImage(formData: FormData): Observable<ApiResponse> {
+    return this.httpclient.post<ApiResponse>(
+      `${this.apiUrl}/registerWithImage`,
+      formData,
+      {
+        headers: this.requestHeader,
+      }
+    );
+  }
+
+  // Get all users with pagination
+  public getAllUsersPageWise(page: number, size: number, sortBy: string, direction: string): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+      
+    return this.httpclient.get<any>(`${this.apiUrl}/getAllUsersPageWise`, { params });
+  }
+  
+  // Search users
+  public searchUsers(query: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+    let params = new HttpParams()
+      .set('query', query)
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('direction', direction);
+      
+    return this.httpclient.get<any>(`${this.apiUrl}/searchUsers`, { params });
+  }
+  
+  // Get a specific user by username
+  public getUser(userName: string): Observable<UserDetailsProxy> {
+    return this.httpclient.get<ApiResponse>(`${this.apiUrl}/getuser/${userName}`)
+      .pipe(
+        map((response: any) => {
+          if (response && response.data) {
+            return response.data;
+          }
+          return {} as UserDetailsProxy;
+        })
+      );
+  }
+  
+  // Delete a user
+  public deleteUser(userName: string): Observable<ApiResponse> {
+    return this.httpclient.delete<ApiResponse>(`${this.apiUrl}/deleteUser/${userName}`);
+  }
+  
+  // Update user information
+  public updateUser(userData: UserDetailsProxy): Observable<ApiResponse> {
+    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUser`, userData);
+  }
+  
+  // Update user role
+  public updateUserRole(userName: string, roleId: string): Observable<ApiResponse> {
+    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUserRole/${userName}/${roleId}`, {});
+  }
+  
+  // Generate fake users for testing
+  public generateFakeUsers(): Observable<ApiResponse> {
+    return this.httpclient.get<ApiResponse>(`${this.apiUrl}/generate-fake-users`);
+  }
+  
+  // Get image URL from UUID
+  public getImageUrl(imageUuid: string): string {
+    return `${this.apiUrl}/user-image/${imageUuid}`;
+  }
+  
+  // Upload user image
+  public uploadUserImage(userName: string, imageFile: File): Observable<ApiResponse> {
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    formData.append('userName', userName);
+    
+    return this.httpclient.post<ApiResponse>(`${this.apiUrl}/uploadUserImage`, formData);
+  }
+  
+  // Get user statistics
+  public getUserStats(): Observable<any> {
+    return this.httpclient.get<any>(`${this.apiUrl}/userStats`);
+  }
+  
+  // Export users to Excel (server-side if implemented)
+  public exportUsersToExcel(): Observable<Blob> {
+    return this.httpclient.get(`${this.apiUrl}/exportUsers`, {
+      responseType: 'blob'
+    });
+  }
+  
+  // Additional helper methods for the admin panel
+  
+  // Get user roles for dropdown
+  public getAllRoles(): Observable<any> {
+    return this.httpclient.get<any>(`${this.apiUrl}/getAllRoles`);
+  }
+  
+  // Check if username exists
+  public checkUsernameExists(userName: string): Observable<boolean> {
+    return this.httpclient.get<boolean>(`${this.apiUrl}/checkUsername/${userName}`);
+  }
+  
+  // Check if email exists
+  public checkEmailExists(email: string): Observable<boolean> {
+    return this.httpclient.get<boolean>(`${this.apiUrl}/checkEmail/${email}`);
+  }
+
+  // Password reset and forgot password functionality
+  
+  // Send password reset email
+  public sendEmail(email: string): Observable<string> {
+    const emailRequest = { email: email };
+    return this.httpclient.post(`${this.apiUrl}/send-email`, emailRequest, {
+      headers: this.requestHeader,
+      responseType: 'text'
+    });
+  }
+
+  // Reset password with token
+  public resetPassword(token: string, newPassword: string): Observable<string> {
+    return this.httpclient.get(`${this.apiUrl}/reset-password/${token}/${newPassword}`, {
+      responseType: 'text'
+    });
+  }
+
+  // Get CAPTCHA image
+  public getCaptchaImage(timestamp: number): Observable<Blob> {
+    return this.httpclient.get(`${this.apiUrl}/captcha-image?t=${timestamp}`, {
+      headers: this.requestHeader,
+      responseType: 'blob'
+    });
+  }
+
+  // Verify CAPTCHA
+  public verifyCaptcha(captchaResponse: string): Observable<boolean> {
+    return this.httpclient.post<boolean>(`${this.apiUrl}/verify-captcha`, { captchaResponse }, {
+      headers: this.requestHeader
+    });
+  }
+
+  
 
   validateResetToken(token: string): Observable<any> {
     return this.httpclient.get(`${this.apiUrl}/validate-token/${token}`);
   }
-
- 
-
- 
-
-  deleteUser(name: String): any {
-    console.log('service' + name);
-    return this.httpclient.delete(`${this.apiUrl}/deleteUser/${name}`);
-  }
-
-  public update(data: UserDetailsProxy) {
-    console.log('Sending Datadsd: ' + JSON.stringify(data));
-    return this.httpclient
-      .put(this.apiUrl + '/updateUser', data, { responseType: 'text' })
-      .pipe(map((response) => response as string));
-  }
-
-  getUserByName(name: String): Observable<UserDetailsProxy> {
-    return this.httpclient.get<UserDetailsProxy>(
-      `${this.apiUrl}/getuser/${name}`
-    );
-  }
-
-  SendEmailForRole(name: string, email: string): Observable<string> {
-    console.log('Registration seller service!');
-    return this.httpclient
-      .post(
-        this.apiUrl + '/send-email-for-role/' + name,
-        { email: email },
-        { responseType: 'text' }
-      )
-      .pipe(map((response) => response as string));
-  }
-
-  updateUserRole(userName: string, newRole: string): Observable<any> {
-    console.log('updaterole sevice' + newRole);
-    return this.httpclient.get(
-      this.apiUrl + `/updateUserRole/${userName}/${newRole}`,
-      {
-        responseType: 'text',
-      }
-    );
-  }
-
-  // getCaptchaImage(): Observable<Blob> {
-  //   return this.httpclient.get(this.apiUrl + '/captcha', {
-  //     responseType: 'blob',
-  //     withCredentials: true,
-  //   });
-  // }
-
-  getCaptchaImage(timestamp?: number): Observable<Blob> {
-    const url = timestamp ? `${this.apiUrl}/captcha?t=${timestamp}` : `${this.apiUrl}/captcha`;
-    return this.httpclient.get(url, {
-      responseType: 'blob',
-      withCredentials: true,
-    });
-  }
-  getAllUsers(): Observable<any[]> {
-    return this.httpclient.get<any[]>(`${this.apiUrl}/users`);
-  }
-
-  getAllUsersPageWise(page: number, size: number): Observable<any> {
-    return this.httpclient.get(
-      `${this.apiUrl}/getAllUsersPageWise?page=${page}&size=${size}`
-    );
-  }
-
-  getImageUrl(imageUuid: string): string {
-    return `${this.apiUrl}/user-image/${imageUuid}`;
-  }
-  searchUsers(query: string, page: number, size: number): Observable<any> {
-    return this.httpclient.get(`${this.apiUrl}/searchUsers?query=${encodeURIComponent(query)}&page=${page}&size=${size}`);
-  }
-  
 }

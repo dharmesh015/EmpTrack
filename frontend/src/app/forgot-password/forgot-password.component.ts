@@ -11,7 +11,7 @@ import { UserAuthServiceService } from '../_service/user-auth-service.service';
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
 })
-export class ForgotPasswordComponent implements OnInit{
+export class ForgotPasswordComponent {
   isLoading = false;
   token: string = '';
   emailSent = false; // New flag to track when email is sent
@@ -24,17 +24,12 @@ export class ForgotPasswordComponent implements OnInit{
         private userAuthService: UserAuthServiceService,
   ) {}
   
-  ngOnInit(): void {
-    // Only load CAPTCHA if the user is not logged in
-    if (!this.userAuthService.isLoggedIn()) {
-      this.loadCaptcha();
-    }
-  }
+  
   sendEmail(form: NgForm) {
     if (form.valid) {
       this.isLoading = true;
       console.log(form.value.captcha)
-      this.userService.sendEmail(form.value.email,form.value.captcha).subscribe(
+      this.userService.sendEmail(form.value.email).subscribe(
         (response) => {
           this.isLoading = false;
 
@@ -82,7 +77,7 @@ export class ForgotPasswordComponent implements OnInit{
       const timestamp = new Date().getTime();
       this.userService.getCaptchaImage(timestamp).subscribe(
         (response: Blob) => {
-          // Revoke previous URL if exists
+        
           if (this.captchaUrl) {
             URL.revokeObjectURL(this.captchaUrl);
           }

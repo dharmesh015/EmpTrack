@@ -58,14 +58,14 @@ export class AddUserDialogComponent {
       this.userData.pinCode = this.form.value.pinCode;
       
       this.userservice.register(this.userData).subscribe((response) => {
-        if (response === 'UserNameExist') {
+        if (response.code === 'UserNameExist') {
           console.log('Username already exists!', response);
           Swal.fire({
             title: 'Username Already In Use',
             text: 'The username you entered is already registered. Please use a different username or log in to your account.',
             icon: 'warning',
           });
-        } else if (response === 'EmailExist') {
+        } else if (response.code === 'EmailExist') {
           console.log('Email already exists!', response);
           Swal.fire({
             title: 'Email Already In Use',
