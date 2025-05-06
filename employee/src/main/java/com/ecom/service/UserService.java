@@ -13,7 +13,7 @@ import com.ecom.proxy.UserProxy;
 public interface UserService {
 	ApiResponse registerNewUser(UserProxy user);
 
-	void updateUserRole(String userName, String roleId);
+	
 
 	ApiResponse saveProfileImage(String user, MultipartFile file);
 

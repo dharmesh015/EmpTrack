@@ -270,22 +270,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUserRole(String userName, String roleId) {
-        User user = userDao.findByUserName(userName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        Role role = roleDao.findById(Long.parseLong(roleId))
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-        
-        Set<Role> userRoles = new HashSet<>();
-        userRoles.add(role);
-        user.setRole(userRoles);
-        user.setModifiedAt(LocalDateTime.now());
-
-        userDao.save(user);
-    }
-
-    @Override
     public ApiResponse registerNewUser(UserProxy userProxy) {
         // Validate the user proxy
         Set<ConstraintViolation<UserProxy>> violations = validator.validate(userProxy);

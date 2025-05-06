@@ -1,13 +1,11 @@
-
-
-
-
 package com.ecom.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +53,36 @@ public class AdminServiceImpl implements AdminService {
             mapperUtil.convertList(allByRoleName.getContent(), UserProxy.class), 
             pageable,
             allByRoleName.getTotalElements()
+        );
+    }
+    
+    @Override
+    public Page<?> getUsersByRole(String role, PageRequest pageable) {
+        // Find users with specified role using the pageable
+        Page<User> usersByRole = userDao.findByRole_RoleName(role, pageable);
+        
+        // Convert to UserProxy and return the page
+        return new PageImpl<>(
+            mapperUtil.convertList(usersByRole.getContent(), UserProxy.class), 
+            pageable,
+            usersByRole.getTotalElements()
+        );
+    }
+    
+    @Override
+    public Page<?> searchUsersByRole(String role, String query, PageRequest pageable) {
+        if (query == null || query.trim().isEmpty()) {
+            return getUsersByRole(role, pageable);
+        }
+        
+        // This assumes you have a searchUsersByRole method in your UserDao
+        // If not, you'll need to add it (see implementation below)
+        Page<User> searchResults = userDao.searchUsersByRole(role, query, pageable);
+        
+        return new PageImpl<>(
+            mapperUtil.convertList(searchResults.getContent(), UserProxy.class),
+            pageable,
+            searchResults.getTotalElements()
         );
     }
     
@@ -140,9 +169,6 @@ public class AdminServiceImpl implements AdminService {
                 Set<Role> userRoles = new HashSet<>();
                 userRoles.add(role);
                 user.setRole(userRoles); // Set roles
-
-                // Map roleId column based on the assigned role
-//                user.setRoleId(role.getId()); 
                 
                 // Optionally, set the 'nrole' association if needed (assuming 'nrole' is the primary role)
                 user.setNrole(role);
@@ -156,5 +182,21 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Error generating fake users: " + e.getMessage());
         }
     }
-
+    
+    @Override
+    public List<Role> getAllRoles() {
+        return (List<Role>) roleDao.findAll();
+    }
+    
+    @Override
+    public boolean checkUsernameExists(String userName) {
+        return userDao.findByUserName(userName).isPresent();
+    }
+    
+    @Override
+    public boolean checkEmailExists(String email) {
+        return userDao.findByEmail(email).isPresent();
+    }
+    
+    
 }

@@ -1,9 +1,7 @@
-
-
-
 package com.ecom.controller;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecom.entity.ApiResponse;
+import com.ecom.entity.Role;
 import com.ecom.proxy.UserProxy;
 import com.ecom.service.AdminService;
 import com.ecom.service.UserService;
@@ -64,6 +63,33 @@ public class AdminController {
                     "Error", "Failed to retrieve users: " + e.getMessage()));
         }
     }
+    
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    @GetMapping("/getUsersByRole")
+    public ResponseEntity<?> getUsersByRole(
+            @RequestParam String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+        
+        try {
+            Sort sort = direction.equalsIgnoreCase("desc") ? 
+                Sort.by(sortBy).descending() : 
+                Sort.by(sortBy).ascending();
+            
+            PageRequest pageable = PageRequest.of(page, size, sort);
+            Page<?> pageData = adminService.getUsersByRole(role, pageable);
+            
+            return ResponseEntity.ok(pageData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
+                    "Error", "Failed to retrieve users by role: " + e.getMessage()));
+        }
+    }
+    
+  
     
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/deleteUser/{userName}")
@@ -151,22 +177,7 @@ public class AdminController {
         }
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/updateUserRole/{userName}/{roleId}")
-    public ResponseEntity<?> updateUserRole(
-            @PathVariable("userName") String userName,
-            @PathVariable("roleId") String roleId) {
-        
-        try {
-            userService.updateUserRole(userName, roleId);
-            return ResponseEntity.ok(
-                new ApiResponse(HttpStatus.OK.value(), "Success", "User role updated successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
-                    "Error", "Failed to update user role: " + e.getMessage()));
-        }
-    }
+    
     
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/download")
@@ -180,4 +191,40 @@ public class AdminController {
         
         return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/getAllRoles")
+    public ResponseEntity<?> getAllRoles() {
+        try {
+            List<Role> roles = adminService.getAllRoles();
+            return ResponseEntity.ok(
+                new ApiResponse(HttpStatus.OK.value(), "Success", "Roles retrieved successfully", roles));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), 
+                    "Error", "Failed to retrieve roles: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/checkUsername/{userName}")
+    public ResponseEntity<Boolean> checkUsernameExists(@PathVariable String userName) {
+        try {
+            boolean exists = adminService.checkUsernameExists(userName);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+    
+    @GetMapping("/checkEmail/{email}")
+    public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email) {
+        try {
+            boolean exists = adminService.checkEmailExists(email);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+    
+   
 }
