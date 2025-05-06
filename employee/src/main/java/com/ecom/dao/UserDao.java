@@ -1,4 +1,4 @@
-ngpackage com.ecom.dao;
+package com.ecom.dao;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
