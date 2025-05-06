@@ -1,5 +1,3 @@
-
-
 import { Injectable } from '@angular/core';
 import { UserAuthServiceService } from './user-auth-service.service';
 import { map, Observable } from 'rxjs';
@@ -73,50 +71,54 @@ export class UserService {
     );
   }
 
-  // Get all users with pagination
-  public getAllUsersPageWise(page: number, size: number, sortBy: string, direction: string): Observable<any> {
+  // Get all users with pagination and active status filter
+  public getAllUsersPageWise(page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sortBy', sortBy)
-      .set('direction', direction);
+      .set('direction', direction)
+      .set('activeOnly', activeOnly.toString());
       
     return this.httpclient.get<any>(`${this.apiUrl}/getAllUsersPageWise`, { params });
   }
   
-  // Get users by role with pagination
-  public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+  // Get users by role with pagination and active status filter
+  public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
     let params = new HttpParams()
       .set('role', role)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sortBy', sortBy)
-      .set('direction', direction);
+      .set('direction', direction)
+      .set('activeOnly', activeOnly.toString());
       
     return this.httpclient.get<any>(`${this.apiUrl}/getUsersByRole`, { params });
   }
   
-  // Search users
-  public searchUsers(query: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+  // Search users with active status filter
+  public searchUsers(query: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
     let params = new HttpParams()
       .set('query', query)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sortBy', sortBy)
-      .set('direction', direction);
+      .set('direction', direction)
+      .set('activeOnly', activeOnly.toString());
       
     return this.httpclient.get<any>(`${this.apiUrl}/searchUsers`, { params });
   }
   
-  // Search users by role
-  public searchUsersByRole(role: string, query: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
+  // Search users by role with active status filter
+  public searchUsersByRole(role: string, query: string, page: number, size: number, sortBy: string, direction: string, activeOnly: boolean = true): Observable<any> {
     let params = new HttpParams()
       .set('role', role)
       .set('query', query)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sortBy', sortBy)
-      .set('direction', direction);
+      .set('direction', direction)
+      .set('activeOnly', activeOnly.toString());
       
     return this.httpclient.get<any>(`${this.apiUrl}/searchUsersByRole`, { params });
   }
@@ -134,7 +136,17 @@ export class UserService {
       );
   }
   
-  // Delete a user
+  // Deactivate a user (soft delete)
+  public deactivateUser(userName: string): Observable<ApiResponse> {
+    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/deactivateUser/${userName}`, {});
+  }
+  
+  // Reactivate a user
+  public reactivateUser(userName: string): Observable<ApiResponse> {
+    return this.httpclient.put<ApiResponse>(`${this.apiUrl}/reactivateUser/${userName}`, {});
+  }
+  
+  // Hard delete a user (kept for admin purposes, but should be used cautiously)
   public deleteUser(userName: string): Observable<ApiResponse> {
     return this.httpclient.delete<ApiResponse>(`${this.apiUrl}/deleteUser/${userName}`);
   }
@@ -143,8 +155,6 @@ export class UserService {
   public updateUser(userData: UserDetailsProxy): Observable<ApiResponse> {
     return this.httpclient.put<ApiResponse>(`${this.apiUrl}/updateUser`, userData);
   }
-  
- 
   
   // Generate fake users for testing
   public generateFakeUsers(): Observable<ApiResponse> {

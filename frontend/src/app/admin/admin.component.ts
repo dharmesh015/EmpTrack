@@ -40,6 +40,9 @@ export class AdminComponent implements OnInit {
   // Add role filter property
   selectedRole: string = 'USER'; // Default role filter
   roles: string[] = ['USER', 'ADMIN']; // Available roles
+  
+  // Flag to show inactive users (default: false - show only active)
+  showInactive: boolean = false;
 
   constructor(
     private router: Router,
@@ -72,8 +75,15 @@ export class AdminComponent implements OnInit {
       this.performGlobalSearch();
     } else {
       this.isGlobalSearch = false;
-      // Update to include role filter
-      this.userservice.getUsersByRole(this.selectedRole, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+      // Update to include role filter and active status filter
+      this.userservice.getUsersByRole(
+        this.selectedRole, 
+        this.page, 
+        this.size, 
+        this.sortBy, 
+        this.sortDirection,
+        !this.showInactive // Pass the opposite of showInactive to get only active users by default
+      ).subscribe({
         next: (data: any) => {
           this.handleUserDataResponse(data);
         },
@@ -90,12 +100,27 @@ export class AdminComponent implements OnInit {
     this.page = 0; // Reset to first page
     this.loadUsers();
   }
+  
+  // Toggle showing inactive users
+  toggleInactiveUsers(): void {
+    this.showInactive = !this.showInactive;
+    this.page = 0; // Reset to first page
+    this.loadUsers();
+  }
 
   performGlobalSearch(): void {
     this.loading = true;
     
-    // Update search to include role filter
-    this.userservice.searchUsersByRole(this.selectedRole, this.searchTerm, this.page, this.size, this.sortBy, this.sortDirection).subscribe({
+    // Update search to include role filter and active status
+    this.userservice.searchUsersByRole(
+      this.selectedRole, 
+      this.searchTerm, 
+      this.page, 
+      this.size, 
+      this.sortBy, 
+      this.sortDirection,
+      !this.showInactive // Pass the opposite of showInactive to get only active users by default
+    ).subscribe({
       next: (data: any) => {
         this.handleUserDataResponse(data);
       },
@@ -276,21 +301,72 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Delete user
-  deleteUser(userName: string, role: string): void {
+  // Deactivate user (soft delete)
+  deactivateUser(userName: string): void {
     Swal.fire({
       title: 'Are you sure?',
-      text: `You are about to delete user "${userName}". This action cannot be undone!`,
+      text: `You are about to deactivate user "${userName}". This action can be reversed later.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: 'Yes, deactivate it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userservice.deactivateUser(userName).subscribe({
+          next: (response: any) => {
+            Swal.fire('Deactivated!', 'User has been deactivated successfully.', 'success');
+            this.loadUsers();
+          },
+          error: (error) => {
+            Swal.fire('Error!', `Failed to deactivate user: ${error.message || 'Unknown error'}`, 'error');
+          }
+        });
+      }
+    });
+  }
+  
+  // Reactivate user
+  reactivateUser(userName: string): void {
+    Swal.fire({
+      title: 'Reactivate User',
+      text: `Do you want to reactivate user "${userName}"?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reactivate!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userservice.reactivateUser(userName).subscribe({
+          next: (response: any) => {
+            Swal.fire('Reactivated!', 'User has been reactivated successfully.', 'success');
+            this.loadUsers();
+          },
+          error: (error) => {
+            Swal.fire('Error!', `Failed to reactivate user: ${error.message || 'Unknown error'}`, 'error');
+          }
+        });
+      }
+    });
+  }
+
+  // Delete user (hard delete - keeping this for admin with warning)
+  deleteUser(userName: string, role: string): void {
+    Swal.fire({
+      title: 'Permanent Deletion Warning',
+      text: `You are about to PERMANENTLY delete user "${userName}". This action CANNOT be undone! Consider deactivating instead.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Delete Permanently',
+      cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
         this.userservice.deleteUser(userName).subscribe({
           next: (response: any) => {
-            Swal.fire('Deleted!', 'User has been deleted successfully.', 'success');
+            Swal.fire('Deleted!', 'User has been permanently deleted.', 'success');
             this.loadUsers();
           },
           error: (error) => {
@@ -314,7 +390,6 @@ export class AdminComponent implements OnInit {
     });
   }
 
- 
   getInitials(name: string): string {
     if (!name) return '?';
     
@@ -380,13 +455,11 @@ export class AdminComponent implements OnInit {
         link.download = 'users_data.xlsx';
         link.click();
         window.URL.revokeObjectURL(url);
-        // this.snackBar.open('Excel file downloaded successfully', 'Close', { duration: 3000 });
         Swal.fire({
           title: 'Success',
           text: 'Excel file downloaded successfully',
           icon: 'success'
         });
-        
       },
       error: (error) => {
         console.error('Error downloading Excel file', error);
