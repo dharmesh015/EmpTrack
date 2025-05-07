@@ -30,18 +30,20 @@ import com.github.javafaker.Faker;
 @Service
 public class AdminServiceImpl implements AdminService {
     
-    private final MapperUtil mapperUtil;
-    
-    @Autowired
-    private UserDao userDao;
-    
-    @Autowired
-    private RoleDao roleDao;
-    
-    public AdminServiceImpl(MapperUtil mapperUtil) {
+	private final MapperUtil mapperUtil;
+    private final UserDao userDao;
+    private final RoleDao roleDao;
+    private final BCryptPasswordEncoder encoder;
+    private final Faker faker;
+
+    public AdminServiceImpl(MapperUtil mapperUtil, UserDao userDao, RoleDao roleDao,
+                            BCryptPasswordEncoder encoder, Faker faker) {
         this.mapperUtil = mapperUtil;
+        this.userDao = userDao;
+        this.roleDao = roleDao;
+        this.encoder = encoder;
+        this.faker = faker;
     }
-    
     
     @Override
     public Page<?> getUsersByRole(String role, PageRequest pageable) {
