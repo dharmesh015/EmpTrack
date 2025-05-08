@@ -1,7 +1,9 @@
 package com.ecom.controller;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ecom.entity.ApiResponse;
 import com.ecom.entity.Role;
@@ -150,6 +153,17 @@ public class AdminController {
 
     
   
+    @GetMapping("/download-template")
+    public ResponseEntity<byte[]> downloadBlankExcelTemplate() {
+        ByteArrayOutputStream outputStream = userService.generateBlankExcelTemplate();
+        byte[] bytes = outputStream.toByteArray();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=users_template.xlsx");
+        headers.add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+    }
     
     
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -177,5 +191,35 @@ public class AdminController {
         }
     }
 
-   
+    @PostMapping("/upload-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> uploadUsers(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty.");
+        }
+
+        String contentType = file.getContentType();
+        if (!(contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+                contentType.equals("text/csv") || contentType.equals("application/vnd.ms-excel"))) {
+            return ResponseEntity.badRequest().body("Only Excel or CSV files are allowed.");
+        }
+
+        try {
+            List<String> errors = userService.importUsersFromFile(file);
+            if (errors.isEmpty()) {
+                return ResponseEntity.ok("Users imported successfully.");
+            } else {
+                // Return a more detailed response with all errors
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "error");
+                response.put("message", "Some users could not be imported");
+                response.put("errors", errors);
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error importing users: " + e.getMessage());
+        }
+    }
+
 }

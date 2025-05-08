@@ -32,10 +32,6 @@ public class WebSecurityConfiguration {
 	private UserDetailsService jwtService;
 	
 
-	
-	
-	
-
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.cors();
@@ -43,7 +39,7 @@ public class WebSecurityConfiguration {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/authenticate", "/createNewRole", "/HttpMethod.OPTIONS", "/registerNewUser","/registerWithImage",
 								 "/send-email", "/reset-password/**","/user-image/**",
-								"/validate-token/**","/captcha","/generate-fake-users")
+								"/validate-token/**","/captcha","/generate-fake-users","/download-template")
 						.permitAll().requestMatchers(HttpHeaders.ALLOW).permitAll().anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 //				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

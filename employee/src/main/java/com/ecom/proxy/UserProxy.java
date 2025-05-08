@@ -24,6 +24,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class UserProxy {
+	public UserProxy(UserProxy testUserProxy) {
+		// TODO Auto-generated constructor stub
+	}
 	private Long id;
 
 	@NotBlank(message = "Name is required")

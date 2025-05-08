@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,20 +31,20 @@ import com.github.javafaker.Faker;
 @Service
 public class AdminServiceImpl implements AdminService {
     
-	private final MapperUtil mapperUtil;
-    private final UserDao userDao;
-    private final RoleDao roleDao;
-    private final BCryptPasswordEncoder encoder;
-    private final Faker faker;
+	  @Autowired
+	    private MapperUtil mapperUtil;
 
-    public AdminServiceImpl(MapperUtil mapperUtil, UserDao userDao, RoleDao roleDao,
-                            BCryptPasswordEncoder encoder, Faker faker) {
-        this.mapperUtil = mapperUtil;
-        this.userDao = userDao;
-        this.roleDao = roleDao;
-        this.encoder = encoder;
-        this.faker = faker;
-    }
+	    @Autowired
+	    private UserDao userDao;
+
+	    @Autowired
+	    private RoleDao roleDao;
+
+	    @Autowired
+	    private PasswordEncoder encoder;
+
+	    @Autowired
+	    private Faker faker;
     
     @Override
     public Page<?> getUsersByRole(String role, PageRequest pageable) {
@@ -122,8 +123,8 @@ public class AdminServiceImpl implements AdminService {
     
     @Override
     public String generateFakeUsers() {
-        Faker faker = new Faker();
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+//        Faker faker = new Faker();
+//        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         int count = 0;
         try {
             for (int i = 1; i <= 105; i++) {

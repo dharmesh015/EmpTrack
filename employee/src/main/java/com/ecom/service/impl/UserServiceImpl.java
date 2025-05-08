@@ -197,6 +197,32 @@
 
 package com.ecom.service.impl;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -209,10 +235,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.ecom.configuration.enums.Gender;
 import com.ecom.dao.RoleDao;
 import com.ecom.dao.UserDao;
@@ -226,20 +248,8 @@ import com.ecom.util.MapperUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -501,6 +511,497 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace();
         }
         return outputStream;
+    }
+    
+    @Override
+    public ByteArrayOutputStream generateBlankExcelTemplate() {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("users_data");
+
+        // Header Row
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Username");
+        headerRow.createCell(1).setCellValue("Full Name");
+        headerRow.createCell(2).setCellValue("Email");
+        headerRow.createCell(3).setCellValue("Gender");
+        headerRow.createCell(4).setCellValue("Date of Birth");
+        headerRow.createCell(5).setCellValue("Contact Number");
+        headerRow.createCell(6).setCellValue("Address");
+        headerRow.createCell(7).setCellValue("Pin Code");
+
+
+        // Auto-size columns
+        for (int i = 0; i < 8; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            workbook.write(outputStream);
+            workbook.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return outputStream;
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return userDao.findByEmail(email).isPresent();
+    }
+    
+    @Override
+    public List<String> importUsersFromFile(MultipartFile file) {
+        List<User> users = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        Role userRole = roleDao.findByRoleName("USER").get(); // Fetch USER role
+        if (userRole == null) throw new RuntimeException("USER role not found.");
+        
+        Set<String> existingUsernames = userDao.findAll().stream()
+                .map(User::getUserName)
+                .collect(Collectors.toSet());
+                
+        Set<String> existingEmails = userDao.findAll().stream()
+                .map(User::getEmail)
+                .collect(Collectors.toSet());
+        
+        Set<String> processingUsernames = new HashSet<>();
+        Set<String> processingEmails = new HashSet<>();
+        
+        // Get validator to validate against proxy constraints
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        
+        if (file.getOriginalFilename().endsWith(".csv")) {
+            processCsvFile(file, users, errors, userRole, existingUsernames, existingEmails, 
+                          processingUsernames, processingEmails, validator);
+        } else {
+            processExcelFile(file, users, errors, userRole, existingUsernames, existingEmails, 
+                            processingUsernames, processingEmails, validator);
+        }
+        
+        if (!users.isEmpty()) {
+            userDao.saveAll(users);
+        }
+        
+        return errors;
+    }
+
+    private void processCsvFile(MultipartFile file, List<User> users, List<String> errors, 
+                               Role userRole, Set<String> existingUsernames, Set<String> existingEmails,
+                               Set<String> processingUsernames, Set<String> processingEmails, Validator validator) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            reader.readLine(); // skip header
+            String line;
+            int rowNum = 1; // Header is row 0
+            
+            while ((line = reader.readLine()) != null) {
+                rowNum++;
+                try {
+                    String[] data = line.split(",");
+                    if (data.length < 8) {
+                        errors.add("Row " + rowNum + ": Insufficient data");
+                        continue;
+                    }
+                    
+                    // Create a UserProxy for validation
+                    UserProxy userProxy = new UserProxy();
+                    
+                    // Username validation
+                    String username = data[0].trim();
+                    if (username.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Username is required");
+                        continue;
+                    }
+                    userProxy.setUserName(username);
+                    
+                    // Validate username uniqueness
+                    if (isUsernameTaken(username, existingUsernames, processingUsernames)) {
+                        errors.add("Row " + rowNum + ": Username '" + username + "' already exists");
+                        continue;
+                    }
+                    
+                    // Name validation
+                    String name = data[1].trim();
+                    if (name.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Name is required");
+                        continue;
+                    }
+                    userProxy.setName(name);
+                    
+                    // Email validation
+                    String email = data[2].trim();
+                    if (email.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Email is required");
+                        continue;
+                    }
+                    userProxy.setEmail(email);
+                    
+                    // Validate email uniqueness
+                    if (isEmailTaken(email, existingEmails, processingEmails)) {
+                        errors.add("Row " + rowNum + ": Email '" + email + "' already exists");
+                        continue;
+                    }
+                    
+                    // Gender validation
+                    String genderStr = data[3].trim();
+                    if (genderStr.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Gender is required");
+                        continue;
+                    }
+                    userProxy.setGender(genderStr);
+                    
+                    Gender gender;
+                    try {
+                        gender = Gender.valueOf(genderStr.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        errors.add("Row " + rowNum + ": Invalid gender value");
+                        continue;
+                    }
+                    
+                    // Date of birth validation
+                    String dobStr = data[4].trim();
+                    if (dobStr.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Date of birth is required");
+                        continue;
+                    }
+                    
+                    LocalDate dob;
+                    try {
+                        dob = LocalDate.parse(dobStr);
+                        if (!dob.isBefore(LocalDate.now())) {
+                            errors.add("Row " + rowNum + ": Date of birth must be in the past");
+                            continue;
+                        }
+                        userProxy.setDob(dob);
+                    } catch (Exception e) {
+                        errors.add("Row " + rowNum + ": Invalid date format");
+                        continue;
+                    }
+                    
+                    // Contact number validation
+                    String contactNumber = data[5].trim();
+                    if (contactNumber.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Contact number is required");
+                        continue;
+                    }
+                    if (!contactNumber.matches("^[0-9]{10}$")) {
+                        errors.add("Row " + rowNum + ": Contact number must be 10 digits");
+                        continue;
+                    }
+                    userProxy.setContactNumber(contactNumber);
+                    
+                    // Address validation
+                    String address = data[6].trim();
+                    if (address.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Address is required");
+                        continue;
+                    }
+                    if (address.length() < 5) {
+                        errors.add("Row " + rowNum + ": Address must be at least 5 characters long");
+                        continue;
+                    }
+                    userProxy.setAddress(address);
+                    
+                    // Pin code validation
+                    String pinCode = data[7].trim();
+                    if (pinCode.isEmpty()) {
+                        errors.add("Row " + rowNum + ": Pin code is required");
+                        continue;
+                    }
+                    if (!pinCode.matches("^[0-9]{6}$")) {
+                        errors.add("Row " + rowNum + ": Pin code must be 6 digits");
+                        continue;
+                    }
+                    userProxy.setPinCode(pinCode);
+                    
+                    // Set password (default)
+                    String defaultPassword = "Welcome@123";
+                    userProxy.setPassword(defaultPassword);
+                    
+                    // Validate the proxy using bean validation
+                    Set<ConstraintViolation<UserProxy>> violations = validator.validate(userProxy);
+                    if (!violations.isEmpty()) {
+                        List<String> validationErrors = violations.stream()
+                            .map(violation -> violation.getMessage())
+                            .collect(Collectors.toList());
+                        errors.add("Row " + rowNum + ": " + String.join(", ", validationErrors));
+                        continue;
+                    }
+                    
+                    // If validation passed, create User entity
+                    User user = new User();
+                    user.setUserName(username);
+                    user.setName(name);
+                    user.setEmail(email);
+                    user.setGender(gender);
+                    user.setDob(dob);
+                    user.setContactNumber(contactNumber);
+                    user.setAddress(address);
+                    user.setPinCode(pinCode);
+                    
+                    // Default values
+                    user.setPassword(defaultPassword);
+                    user.setRole(Set.of(userRole));
+                    user.setNrole(userRole);
+                    user.setActive(true);
+                    
+                    users.add(user);
+                    processingUsernames.add(username);
+                    processingEmails.add(email);
+                    
+                } catch (Exception e) {
+                    errors.add("Row " + rowNum + ": " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            errors.add("Error reading CSV file: " + e.getMessage());
+        }
+    }
+
+    private void processExcelFile(MultipartFile file, List<User> users, List<String> errors, 
+                                 Role userRole, Set<String> existingUsernames, Set<String> existingEmails,
+                                 Set<String> processingUsernames, Set<String> processingEmails, Validator validator) {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                
+                try {
+                    // Create a UserProxy for validation
+                    UserProxy userProxy = new UserProxy();
+                    
+                    // Username validation
+                    String username = getCellValueAsString(row.getCell(0));
+                    if (username.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Username is required");
+                        continue;
+                    }
+                    if (username.length() < 3) {
+                        errors.add("Row " + (i+1) + ": Username must be at least 3 characters long");
+                        continue;
+                    }
+                    if (!username.matches("^[a-zA-Z0-9._-]{3,}$")) {
+                        errors.add("Row " + (i+1) + ": Username can only contain letters, numbers, dots, underscores, and hyphens");
+                        continue;
+                    }
+                    userProxy.setUserName(username);
+                    
+                    // Validate username uniqueness
+                    if (isUsernameTaken(username, existingUsernames, processingUsernames)) {
+                        errors.add("Row " + (i+1) + ": Username '" + username + "' already exists");
+                        continue;
+                    }
+                    
+                    // Name validation
+                    String name = getCellValueAsString(row.getCell(1));
+                    if (name.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Name is required");
+                        continue;
+                    }
+                    userProxy.setName(name);
+                    
+                    // Email validation
+                    String email = getCellValueAsString(row.getCell(2));
+                    if (email.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Email is required");
+                        continue;
+                    }
+                    // Basic email validation
+                    if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+                        errors.add("Row " + (i+1) + ": Email should be valid");
+                        continue;
+                    }
+                    userProxy.setEmail(email);
+                    
+                    // Validate email uniqueness
+                    if (isEmailTaken(email, existingEmails, processingEmails)) {
+                        errors.add("Row " + (i+1) + ": Email '" + email + "' already exists");
+                        continue;
+                    }
+                    
+                    // Gender validation
+                    String genderStr = getCellValueAsString(row.getCell(3));
+                    if (genderStr.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Gender is required");
+                        continue;
+                    }
+                    userProxy.setGender(genderStr);
+                    
+                    Gender gender;
+                    try {
+                        gender = Gender.valueOf(genderStr.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        errors.add("Row " + (i+1) + ": Invalid gender value");
+                        continue;
+                    }
+                    
+                    // Date of birth validation and parsing
+                    LocalDate dob;
+                    Cell dobCell = row.getCell(4);
+                    if (dobCell == null) {
+                        errors.add("Row " + (i+1) + ": Date of birth is required");
+                        continue;
+                    }
+                    
+                    try {
+                        if (dobCell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(dobCell)) {
+                            // Date stored as a numeric value
+                            Date date = dobCell.getDateCellValue();
+                            dob = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        } else {
+                            // Try parsing as string
+                            dob = LocalDate.parse(getCellValueAsString(dobCell));
+                        }
+                        
+                        // Validate date is in the past
+                        if (!dob.isBefore(LocalDate.now())) {
+                            errors.add("Row " + (i+1) + ": Date of birth must be in the past");
+                            continue;
+                        }
+                        userProxy.setDob(dob);
+                    } catch (Exception e) {
+                        errors.add("Row " + (i+1) + ": Invalid date format");
+                        continue;
+                    }
+                    
+                    // Contact number validation
+                    String contactNumber = getCellValueAsString(row.getCell(5));
+                    if (contactNumber.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Contact number is required");
+                        continue;
+                    }
+                    if (!contactNumber.matches("^[0-9]{10}$")) {
+                        errors.add("Row " + (i+1) + ": Contact number must be 10 digits");
+                        continue;
+                    }
+                    userProxy.setContactNumber(contactNumber);
+                    
+                    // Address validation
+                    String address = getCellValueAsString(row.getCell(6));
+                    if (address.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Address is required");
+                        continue;
+                    }
+                    if (address.length() < 5) {
+                        errors.add("Row " + (i+1) + ": Address must be at least 5 characters long");
+                        continue;
+                    }
+                    userProxy.setAddress(address);
+                    
+                    // Pin code validation
+                    String pinCode = getCellValueAsString(row.getCell(7));
+                    if (pinCode.isEmpty()) {
+                        errors.add("Row " + (i+1) + ": Pin code is required");
+                        continue;
+                    }
+                    if (!pinCode.matches("^[0-9]{6}$")) {
+                        errors.add("Row " + (i+1) + ": Pin code must be 6 digits");
+                        continue;
+                    }
+                    userProxy.setPinCode(pinCode);
+                    
+                    // Set password (default)
+                    String defaultPassword = "Welcome@123";
+                    userProxy.setPassword(defaultPassword);
+                    
+                    // Validate the proxy using bean validation
+                    Set<ConstraintViolation<UserProxy>> violations = validator.validate(userProxy);
+                    if (!violations.isEmpty()) {
+                        List<String> validationErrors = violations.stream()
+                            .map(violation -> violation.getMessage())
+                            .collect(Collectors.toList());
+                        errors.add("Row " + (i+1) + ": " + String.join(", ", validationErrors));
+                        continue;
+                    }
+                    
+                    // If validation passed, create User entity
+                    User user = new User();
+                    user.setUserName(username);
+                    user.setName(name);
+                    user.setEmail(email);
+                    user.setGender(gender);
+                    user.setDob(dob);
+                    user.setContactNumber(contactNumber);
+                    user.setAddress(address);
+                    user.setPinCode(pinCode);
+                    
+                    // Default values
+                    user.setPassword(defaultPassword);
+                    user.setRole(Set.of(userRole));
+                    user.setNrole(userRole);
+                    user.setActive(true);
+                    
+                    users.add(user);
+                    processingUsernames.add(username);
+                    processingEmails.add(email);
+                    
+                } catch (Exception e) {
+                    errors.add("Row " + (i+1) + ": " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            errors.add("Error reading Excel file: " + e.getMessage());
+        }
+    }
+
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toLocalDate().toString();
+                }
+                
+                // Handle integer vs decimal numbers
+                double numericValue = cell.getNumericCellValue();
+                if (numericValue == Math.floor(numericValue)) {
+                    // It's an integer - format as long to avoid scientific notation
+                    return String.valueOf((long)numericValue).trim();
+                } else {
+                    // It's a decimal - use default string representation
+                    return String.valueOf(numericValue).trim();
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue()).trim();
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue().trim();
+                } catch (Exception e) {
+                    try {
+                        // Try numeric formula result
+                        double numValue = cell.getNumericCellValue();
+                        if (numValue == Math.floor(numValue)) {
+                            return String.valueOf((long)numValue).trim();
+                        } else {
+                            return String.valueOf(numValue).trim();
+                        }
+                    } catch (Exception ex) {
+                        // If all else fails
+                        return "";
+                    }
+                }
+            case BLANK:
+                return "";
+            case ERROR:
+                return "#ERROR";
+            default:
+                return "";
+        }
+    }
+
+    private boolean isUsernameTaken(String username, Set<String> existingUsernames, Set<String> processingUsernames) {
+        return existingUsernames.contains(username) || processingUsernames.contains(username);
+    }
+
+    private boolean isEmailTaken(String email, Set<String> existingEmails, Set<String> processingEmails) {
+        return existingEmails.contains(email) || processingEmails.contains(email);
     }
 
 }

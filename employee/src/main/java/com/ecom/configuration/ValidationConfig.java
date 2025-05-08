@@ -13,4 +13,5 @@ public class ValidationConfig {
     public Validator validator() {
         return new LocalValidatorFactoryBean();
     }
+    
 }
