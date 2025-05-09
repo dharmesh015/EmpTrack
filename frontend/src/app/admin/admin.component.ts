@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { UserService } from '../_service/user.service';
 import Swal from 'sweetalert2';
 import { MatDialog } from '@angular/material/dialog';
 import { UpdateUserDialogComponent } from '../update-user-dialog/update-user-dialog.component';
@@ -9,6 +8,8 @@ import { ViewComponent } from '../view/view.component';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AddUserComponent } from '../add-user/add-user.component';
+import { UserService } from '../_service/user.service';
 // import * as XLSX from 'xlsx';
 
 @Component({
@@ -419,6 +420,19 @@ export class AdminComponent implements OnInit {
       error: (error) => {
         console.error('Error downloading Excel file', error);
         this.snackBar.open('Failed to download Excel file', 'Close', { duration: 3000 });
+      }
+    });
+  }
+  addUser(): void {
+    const dialogRef = this.dialog.open(AddUserComponent, {
+      width: '2000px',
+      disableClose: true
+    });
+  
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Refresh the user list if a user was added
+        this.loadUsers();
       }
     });
   }

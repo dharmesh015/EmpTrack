@@ -40,7 +40,9 @@ import { AddUserDialogComponent } from './add-user-dialog/add-user-dialog.compon
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ViewComponent } from './view/view.component';
-import { AdminProfileComponent } from './admin-profile/admin-profile.component'; 
+import { AdminProfileComponent } from './admin-profile/admin-profile.component';
+import { AddUserComponent } from './add-user/add-user.component'; 
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 
 
@@ -61,7 +63,8 @@ import { AdminProfileComponent } from './admin-profile/admin-profile.component';
     AddUserDialogComponent,
     UpdateUserDialogComponent,
     ViewComponent,
-    AdminProfileComponent
+    AdminProfileComponent,
+    AddUserComponent
   ],
   imports: [
     BrowserModule,
@@ -86,6 +89,7 @@ import { AdminProfileComponent } from './admin-profile/admin-profile.component';
     MatRadioModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatProgressBarModule
     
     
  

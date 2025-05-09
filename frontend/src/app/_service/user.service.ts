@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { UserAuthServiceService } from './user-auth-service.service';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { ApiResponse } from '../modul/api-response';
 import { UserDetailsProxy } from '../modul/user-details-proxy';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +13,7 @@ export class UserService {
   requestHeader = new HttpHeaders({ 'No-Auth': 'True' });
   
   constructor(
+    private http: HttpClient,
     private httpclient: HttpClient,
     private userAuthService: UserAuthServiceService
   ) {}
@@ -70,8 +71,15 @@ export class UserService {
       }
     );
   }
-
-
+  
+  
+  public addUserWithImage(formData: FormData): Observable<ApiResponse> {
+    return this.httpclient.post<ApiResponse>(
+      `${this.apiUrl}/registerWithImage`,
+      formData,
+    );
+  }
+  
   public getUsersByRole(role: string, page: number, size: number, sortBy: string, direction: string): Observable<any> {
     let params = new HttpParams()
       .set('role', role)
@@ -174,6 +182,99 @@ export class UserService {
       headers: this.requestHeader
     });
   }
+  // checkEmailExists(email: string): Observable<boolean> {
+  //   return this.httpclient.get<boolean>(`${this.apiUrl}/check-email/`+email);
+  // }
+  // uploadUsersFile(formData: FormData): Observable<any> {
+  //   return this.httpclient.post(`${this.apiUrl}/upload-users`, formData);
+  // }
 
-  
+  // // addUser(userData: any): Observable<ApiResponse> {
+  // //   return this.httpclient.post<ApiResponse>(`${this.apiUrl}/registerNewUser`, userData);
+  // // }
+  // downloadUserTemplate(): Observable<Blob> {
+  //   return this.httpclient.get(`${this.apiUrl}/download-template`, {
+  //     responseType: 'blob'
+  //   });
+  // }
+  checkEmail(email: string): Observable<ApiResponse> {
+    return this.http.get<ApiResponse>(`${this.apiUrl}/check-email/${email}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Register a single user with profile image
+   */
+  registerUser(userData: any, file?: File): Observable<ApiResponse> {
+    const formData = new FormData();
+    
+    // Convert date format if needed
+    if (userData.dob && userData.dob instanceof Date) {
+      userData.dob = userData.dob.toISOString().split('T')[0];
+    }
+    
+    formData.append('userData', JSON.stringify(userData));
+    
+    if (file) {
+      formData.append('file', file);
+    }
+    
+    return this.http.post<ApiResponse>(`${this.apiUrl}/registerWithImage`, formData)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Upload multiple users from Excel or CSV file
+   */
+  uploadUsers(file: File): Observable<ApiResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return this.http.post<ApiResponse>(`${this.apiUrl}/upload-users`, formData)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Download blank Excel template for bulk user upload
+   */
+  downloadTemplate(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/download-template`, {
+      responseType: 'blob'
+    }).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Error handler for HTTP requests
+   */
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    let errorResponse: ApiResponse = {
+      status: error.status || 500,
+      message: errorMessage
+    };
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorResponse.message = `Error: ${error.error.message}`;
+    } else if (error.error) {
+      // Server-side error
+      if (typeof error.error === 'string') {
+        try {
+          const parsedError = JSON.parse(error.error);
+          errorResponse = parsedError;
+        } catch (e) {
+          errorResponse.message = error.error;
+        }
+      } else {
+        if (error.error.message) {
+          errorResponse.message = error.error.message;
+        }
+        if (error.error.errors) {
+          errorResponse.errors = error.error.errors;
+        }
+      }
+    }
+    
+    return throwError(() => errorResponse);
+  }
 }
