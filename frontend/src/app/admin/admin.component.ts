@@ -333,18 +333,7 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // Add new user
-  addNewUser(): void {
-    const dialogRef = this.dialog.open(AddUserDialogComponent, {
-      width: '600px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadUsers();
-      }
-    });
-  }
+  
 
   getInitials(name: string): string {
     if (!name) return '?';
@@ -424,16 +413,6 @@ export class AdminComponent implements OnInit {
     });
   }
   addUser(): void {
-    const dialogRef = this.dialog.open(AddUserComponent, {
-      width: '2000px',
-      disableClose: true
-    });
-  
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // Refresh the user list if a user was added
-        this.loadUsers();
-      }
-    });
+    this.router.navigate(['/adduser']);
   }
 }

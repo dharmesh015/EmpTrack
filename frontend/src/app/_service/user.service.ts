@@ -197,15 +197,15 @@ export class UserService {
   //     responseType: 'blob'
   //   });
   // }
-  checkEmail(email: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.apiUrl}/check-email/${email}`)
+  checkEmail(email: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/check-email/${email}`)
       .pipe(catchError(this.handleError));
   }
 
   /**
    * Register a single user with profile image
    */
-  registerUser(userData: any, file?: File): Observable<ApiResponse> {
+  registerUser(userData: any, file?: File): Observable<any> {
     const formData = new FormData();
     
     // Convert date format if needed
@@ -219,18 +219,18 @@ export class UserService {
       formData.append('file', file);
     }
     
-    return this.http.post<ApiResponse>(`${this.apiUrl}/registerWithImage`, formData)
+    return this.http.post(`${this.apiUrl}/registerWithImage`, formData)
       .pipe(catchError(this.handleError));
   }
 
   /**
    * Upload multiple users from Excel or CSV file
    */
-  uploadUsers(file: File): Observable<ApiResponse> {
+  uploadUsers(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
     
-    return this.http.post<ApiResponse>(`${this.apiUrl}/upload-users`, formData)
+    return this.http.post(`${this.apiUrl}/upload-users`, formData)
       .pipe(catchError(this.handleError));
   }
 
@@ -247,34 +247,53 @@ export class UserService {
    * Error handler for HTTP requests
    */
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'An unknown error occurred!';
     let errorResponse: ApiResponse = {
       status: error.status || 500,
-      message: errorMessage
+      message: 'An unknown error occurred!'
     };
     
+    // Client-side error
     if (error.error instanceof ErrorEvent) {
-      // Client-side error
       errorResponse.message = `Error: ${error.error.message}`;
+      
+    // Server-side error
     } else if (error.error) {
-      // Server-side error
-      if (typeof error.error === 'string') {
+      console.log('Raw error response:', error.error);
+      
+      // If the error is already structured as an object
+      if (typeof error.error === 'object' && !Array.isArray(error.error)) {
+        // Copy status and message directly from the error response
+        if (error.error.status) errorResponse.status = error.error.status;
+        if (error.error.message) errorResponse.message = error.error.message;
+        if (error.error.code) errorResponse.code = error.error.code;
+        if (error.error.errors) errorResponse.errors = error.error.errors;
+      }
+      // If the error is a string, try to parse it as JSON
+      else if (typeof error.error === 'string') {
         try {
           const parsedError = JSON.parse(error.error);
-          errorResponse = parsedError;
+          if (parsedError.status) errorResponse.status = parsedError.status;
+          if (parsedError.message) errorResponse.message = parsedError.message;
+          if (parsedError.code) errorResponse.code = parsedError.code;
+          if (parsedError.errors) errorResponse.errors = parsedError.errors;
         } catch (e) {
+          // If parsing fails, use the string as the message
           errorResponse.message = error.error;
-        }
-      } else {
-        if (error.error.message) {
-          errorResponse.message = error.error.message;
-        }
-        if (error.error.errors) {
-          errorResponse.errors = error.error.errors;
         }
       }
     }
     
+    // Fallback - if status and message weren't properly set
+    if (!errorResponse.message && error.statusText) {
+      errorResponse.message = error.statusText;
+    }
+    
+    // Use the HTTP status code from the error if it exists
+    if (error.status) {
+      errorResponse.status = error.status;
+    }
+    
+    console.log('Processed error response:', errorResponse);
     return throwError(() => errorResponse);
   }
 }

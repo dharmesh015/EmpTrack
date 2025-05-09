@@ -1,273 +1,262 @@
+<!-- Enhanced Add User Component Template -->
 <div class="user-management-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <ul class="breadcrumb">
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="/users">Users</a></li>
+      <li class="current">Add User</li>
+    </ul>
+  </div>
+  
   <!-- Email Verification Step -->
-  <div *ngIf="currentStep === 'email-verification'" class="step-container">
-    <h2>User Registration</h2>
-    <p>First, let's check if the email already exists in our system.</p>
+  <div class="step-container" *ngIf="currentStep === 'email-verification'">
+    <h2>Email Verification</h2>
+    <p>Please enter an email address to check availability before proceeding.</p>
     
     <form [formGroup]="emailCheckForm" (ngSubmit)="checkEmail()">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          formControlName="email" 
-          placeholder="Enter email address"
-          [ngClass]="{'invalid': emailCheckForm.get('email')?.invalid && emailCheckForm.get('email')?.touched}"
-        >
-        <div *ngIf="emailCheckForm.get('email')?.invalid && emailCheckForm.get('email')?.touched" class="error-message">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" formControlName="email" 
+               [class.invalid]="emailCheckForm.get('email')?.invalid && emailCheckForm.get('email')?.touched">
+        <div class="error-message" *ngIf="emailCheckForm.get('email')?.invalid && emailCheckForm.get('email')?.touched">
           <span *ngIf="emailCheckForm.get('email')?.errors?.['required']">Email is required.</span>
           <span *ngIf="emailCheckForm.get('email')?.errors?.['email']">Please enter a valid email address.</span>
         </div>
       </div>
       
-      <div *ngIf="emailError" class="error-container">
-        <div class="error-message">{{ emailError }}</div>
-      </div>
-      
-      <button type="submit" [disabled]="isCheckingEmail">
-        <span *ngIf="!isCheckingEmail">Verify Email</span>
-        <span *ngIf="isCheckingEmail">Checking...</span>
-      </button>
-    </form>
-  </div>
-  
-  <!-- User Option Step -->
-  <div *ngIf="currentStep === 'user-option'" class="step-container">
-    <h2>Add Users</h2>
-    <p>How would you like to add users?</p>
-    
-    <div class="options-container">
-      <button (click)="goToSingleUserForm()" class="option-button">
-        <span class="icon">👤</span>
-        <span>Add Single User</span>
-        <p class="option-description">Add one user with detailed information</p>
-      </button>
-      
-      <button (click)="goToMultiUserForm()" class="option-button">
-        <span class="icon">👥</span>
-        <span>Add Multiple Users</span>
-        <p class="option-description">Upload a file with multiple users</p>
-      </button>
-    </div>
-    
-    <button (click)="goBack()" class="back-button">Back</button>
-  </div>
-  
-  <!-- Single User Form Step -->
-  <div *ngIf="currentStep === 'single-user'" class="step-container">
-    <h2>Add Single User</h2>
-    
-    <form [formGroup]="singleUserForm" (ngSubmit)="submitSingleUser()">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input 
-          type="text" 
-          id="name" 
-          formControlName="name" 
-          placeholder="Enter full name"
-          [ngClass]="{'invalid': singleUserForm.get('name')?.invalid && singleUserForm.get('name')?.touched}"
-        >
-        <div *ngIf="singleUserForm.get('name')?.invalid && singleUserForm.get('name')?.touched" class="error-message">
-          Full name is required.
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="userName">Username</label>
-          <input 
-            type="text" 
-            id="userName" 
-            formControlName="userName" 
-            placeholder="Enter username"
-            [ngClass]="{'invalid': singleUserForm.get('userName')?.invalid && singleUserForm.get('userName')?.touched}"
-          >
-          <div *ngIf="singleUserForm.get('userName')?.invalid && singleUserForm.get('userName')?.touched" class="error-message">
-            Username is required.
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="dob">Date of Birth</label>
-          <input 
-            type="date" 
-            id="dob" 
-            formControlName="dob" 
-            [ngClass]="{'invalid': singleUserForm.get('dob')?.invalid && singleUserForm.get('dob')?.touched}"
-          >
-          <div *ngIf="singleUserForm.get('dob')?.invalid && singleUserForm.get('dob')?.touched" class="error-message">
-            Date of birth is required.
-          </div>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="regEmail">Email</label>
-        <input 
-          type="email" 
-          id="regEmail" 
-          formControlName="email" 
-          placeholder="Enter email address"
-          [ngClass]="{'invalid': singleUserForm.get('email')?.invalid && singleUserForm.get('email')?.touched}"
-          readonly
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          formControlName="password" 
-          placeholder="Enter password"
-          [ngClass]="{'invalid': singleUserForm.get('password')?.invalid && singleUserForm.get('password')?.touched}"
-        >
-        <div *ngIf="singleUserForm.get('password')?.invalid && singleUserForm.get('password')?.touched" class="error-message">
-          <span *ngIf="singleUserForm.get('password')?.errors?.['required']">Password is required.</span>
-          <span *ngIf="singleUserForm.get('password')?.errors?.['minlength']">Password must be at least 8 characters.</span>
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="gender">Gender</label>
-          <select 
-            id="gender" 
-            formControlName="gender"
-            [ngClass]="{'invalid': singleUserForm.get('gender')?.invalid && singleUserForm.get('gender')?.touched}"
-          >
-            <option *ngFor="let option of genderOptions" [ngValue]="option.value">{{ option.label }}</option>
-          </select>
-        </div>
-        
-        <!-- <div class="form-group">
-          <label for="role">Role</label>
-          <select 
-            id="role" 
-            formControlName="role"
-            [ngClass]="{'invalid': singleUserForm.get('role')?.invalid && singleUserForm.get('role')?.touched}"
-          >
-            <option value="USER">User</option>
-            <option value="ADMIN">Administrator</option>
-          </select>
-        </div> -->
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="contactNumber">Contact Number</label>
-          <input 
-            type="tel" 
-            id="contactNumber" 
-            formControlName="contactNumber" 
-            placeholder="Enter 10-digit mobile number"
-            [ngClass]="{'invalid': singleUserForm.get('contactNumber')?.invalid && singleUserForm.get('contactNumber')?.touched}"
-          >
-          <div *ngIf="singleUserForm.get('contactNumber')?.invalid && singleUserForm.get('contactNumber')?.touched" class="error-message">
-            <span *ngIf="singleUserForm.get('contactNumber')?.errors?.['required']">Contact number is required.</span>
-            <span *ngIf="singleUserForm.get('contactNumber')?.errors?.['pattern']">Please enter a valid 10-digit contact number.</span>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="pinCode">PIN Code</label>
-          <input 
-            type="text" 
-            id="pinCode" 
-            formControlName="pinCode" 
-            placeholder="Enter 6-digit PIN code"
-            [ngClass]="{'invalid': singleUserForm.get('pinCode')?.invalid && singleUserForm.get('pinCode')?.touched}"
-          >
-          <div *ngIf="singleUserForm.get('pinCode')?.invalid && singleUserForm.get('pinCode')?.touched" class="error-message">
-            <span *ngIf="singleUserForm.get('pinCode')?.errors?.['required']">PIN code is required.</span>
-            <span *ngIf="singleUserForm.get('pinCode')?.errors?.['pattern']">Please enter a valid 6-digit PIN code.</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="address">Address</label>
-        <textarea 
-          id="address" 
-          formControlName="address" 
-          placeholder="Enter full address"
-          rows="3"
-          [ngClass]="{'invalid': singleUserForm.get('address')?.invalid && singleUserForm.get('address')?.touched}"
-        ></textarea>
-        <div *ngIf="singleUserForm.get('address')?.invalid && singleUserForm.get('address')?.touched" class="error-message">
-          Address is required.
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="profileImage">Profile Image</label>
-        <input 
-          type="file" 
-          id="profileImage" 
-          (change)="onFileSelected($event)"
-          accept="image/*"
-        >
-      </div>
-      
-      <div *ngIf="userSubmitError" class="error-container">
-        <div class="error-message" [innerHTML]="userSubmitError"></div>
+      <div class="error-container" *ngIf="emailError">
+        {{ emailError }}
       </div>
       
       <div class="button-row">
-        <button type="button" (click)="goBack()" class="back-button">Back</button>
-        <button type="submit" [disabled]="isSubmittingUser">
-          <span *ngIf="!isSubmittingUser">Register User</span>
-          <span *ngIf="isSubmittingUser">Registering...</span>
+        <button type="submit" [disabled]="isCheckingEmail">
+          <span *ngIf="!isCheckingEmail">Check Email</span>
+          <span *ngIf="isCheckingEmail">Checking...</span>
         </button>
       </div>
     </form>
   </div>
   
-  <!-- Multiple Users Step -->
-  <div *ngIf="currentStep === 'multi-user'" class="step-container">
-    <h2>Add Multiple Users</h2>
+  <!-- User Option Step -->
+  <div class="step-container" *ngIf="currentStep === 'user-option'">
+    <h2>Select User Creation Method</h2>
+    <p>Choose how you would like to add users to the system.</p>
+    
+    <div class="options-container">
+      <div class="option-button" (click)="goToSingleUserForm()">
+        <div class="icon">👤</div>
+        <span>Add Single User</span>
+        <p class="option-description">Create a single user account with detailed information.</p>
+      </div>
+      
+      <div class="option-button" (click)="goToMultiUserForm()">
+        <div class="icon">👥</div>
+        <span>Bulk Upload Users</span>
+        <p class="option-description">Import multiple users at once using an Excel template.</p>
+      </div>
+    </div>
+    
+    <div class="button-row">
+      <button class="back-button" (click)="goBack()">Back</button>
+    </div>
+  </div>
+  
+  <!-- Single User Form Step -->
+  <div class="step-container" *ngIf="currentStep === 'single-user'">
+    <h2>Add Single User</h2>
+    <p>Fill in the details to create a new user account.</p>
+    
+    <form [formGroup]="singleUserForm" (ngSubmit)="submitSingleUser()">
+      <!-- Personal Information Section -->
+      <div class="form-section">
+        <h3>Personal Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" formControlName="name" 
+                   [class.invalid]="singleUserForm.get('name')?.invalid && singleUserForm.get('name')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('name')?.invalid && singleUserForm.get('name')?.touched">
+              Full name is required.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" formControlName="dob" 
+                   [class.invalid]="singleUserForm.get('dob')?.invalid && singleUserForm.get('dob')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('dob')?.invalid && singleUserForm.get('dob')?.touched">
+              Date of birth is required.
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" formControlName="gender">
+              <option *ngFor="let option of genderOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="contactNumber">Contact Number</label>
+            <input type="text" id="contactNumber" formControlName="contactNumber" 
+                   [class.invalid]="singleUserForm.get('contactNumber')?.invalid && singleUserForm.get('contactNumber')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('contactNumber')?.invalid && singleUserForm.get('contactNumber')?.touched">
+              <span *ngIf="singleUserForm.get('contactNumber')?.errors?.['required']">Contact number is required.</span>
+              <span *ngIf="singleUserForm.get('contactNumber')?.errors?.['pattern']">Please enter a valid 10-digit contact number.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Account Information Section -->
+      <div class="form-section">
+        <h3>Account Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="userName">Username</label>
+            <input type="text" id="userName" formControlName="userName" 
+                   [class.invalid]="singleUserForm.get('userName')?.invalid && singleUserForm.get('userName')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('userName')?.invalid && singleUserForm.get('userName')?.touched">
+              Username is required.
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="user-email">Email</label>
+            <input type="email" id="user-email" formControlName="email" 
+                   [class.invalid]="singleUserForm.get('email')?.invalid && singleUserForm.get('email')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('email')?.invalid && singleUserForm.get('email')?.touched">
+              <span *ngIf="singleUserForm.get('email')?.errors?.['required']">Email is required.</span>
+              <span *ngIf="singleUserForm.get('email')?.errors?.['email']">Please enter a valid email address.</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" formControlName="password" 
+                   [class.invalid]="singleUserForm.get('password')?.invalid && singleUserForm.get('password')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('password')?.invalid && singleUserForm.get('password')?.touched">
+              <span *ngIf="singleUserForm.get('password')?.errors?.['required']">Password is required.</span>
+              <span *ngIf="singleUserForm.get('password')?.errors?.['minlength']">Password must be at least 8 characters long.</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="role">Role</label>
+            <select id="role" formControlName="role">
+              <option value="USER">User</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Address Information Section -->
+      <div class="form-section">
+        <h3>Address Information</h3>
+        
+        <div class="form-group">
+          <label for="address">Address</label>
+          <textarea id="address" formControlName="address" 
+                   [class.invalid]="singleUserForm.get('address')?.invalid && singleUserForm.get('address')?.touched"></textarea>
+          <div class="error-message" *ngIf="singleUserForm.get('address')?.invalid && singleUserForm.get('address')?.touched">
+            Address is required.
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pinCode">Pin Code</label>
+            <input type="text" id="pinCode" formControlName="pinCode" 
+                   [class.invalid]="singleUserForm.get('pinCode')?.invalid && singleUserForm.get('pinCode')?.touched">
+            <div class="error-message" *ngIf="singleUserForm.get('pinCode')?.invalid && singleUserForm.get('pinCode')?.touched">
+              <span *ngIf="singleUserForm.get('pinCode')?.errors?.['required']">Pin code is required.</span>
+              <span *ngIf="singleUserForm.get('pinCode')?.errors?.['pattern']">Please enter a valid 6-digit pin code.</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="profileImage">Profile Image</label>
+            <div class="file-upload">
+              <label for="profileImage">
+                <span>Drop your image here or click to browse</span>
+              </label>
+              <input type="file" id="profileImage" (change)="onFileSelected($event)" accept="image/*">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Error and Submit Section -->
+      <div class="error-container" *ngIf="userSubmitError" [innerHTML]="userSubmitError"></div>
+      
+      <div class="button-row">
+        <button type="button" class="back-button" (click)="goBack()">Back</button>
+        <button type="submit" [disabled]="isSubmittingUser">
+          <span *ngIf="!isSubmittingUser">Create User</span>
+          <span *ngIf="isSubmittingUser">Creating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Multi-User Upload Step -->
+  <div class="step-container" *ngIf="currentStep === 'multi-user'">
+    <h2>Bulk Upload Users</h2>
+    <p>Upload multiple users at once using our template.</p>
     
     <div class="template-section">
-      <p>Download template and fill it with user information:</p>
-      <button (click)="downloadTemplate()" class="template-button">Download Template</button>
+      <h3>Download Template</h3>
+      <p>First, download our Excel template and fill in the user details.</p>
+      <button class="template-button" (click)="downloadTemplate()">Download Template</button>
     </div>
     
     <div class="upload-section">
-      <p>Upload your completed file:</p>
+      <h3>Upload Completed File</h3>
+      <p>Once your template is filled, upload it below.</p>
       
       <div class="file-upload">
-        <input type="file" id="bulkFile" (change)="onBulkFileSelected($event)" accept=".xlsx,.xls,.csv">
         <label for="bulkFile">
-          <span *ngIf="!selectedFile">Choose file</span>
-          <span *ngIf="selectedFile">{{ selectedFile.name }}</span>
+          <span *ngIf="!selectedFile">Drop your Excel file here or click to browse</span>
+          <span *ngIf="selectedFile">Selected: {{ selectedFile.name }}</span>
         </label>
+        <input type="file" id="bulkFile" (change)="onBulkFileSelected($event)" accept=".xlsx,.xls">
       </div>
       
-      <button (click)="uploadUsers()" [disabled]="!selectedFile || isUploadingFile" class="upload-button">
-        <span *ngIf="!isUploadingFile">Upload Users</span>
-        <span *ngIf="isUploadingFile">Uploading...</span>
-      </button>
+      <div class="button-row">
+        <button type="button" class="back-button" (click)="goBack()">Back</button>
+        <button (click)="uploadUsers()" [disabled]="!selectedFile || isUploadingFile">
+          <span *ngIf="!isUploadingFile">Upload Users</span>
+          <span *ngIf="isUploadingFile">Uploading...</span>
+        </button>
+      </div>
       
-      <!-- Progress bar -->
+      <!-- Progress and Results -->
       <div *ngIf="isUploadingFile" class="progress-container">
         <div class="progress-bar" [style.width.%]="uploadProgress"></div>
-        <span class="progress-text">{{ uploadProgress }}%</span>
+        <div class="progress-text">{{ uploadProgress }}%</div>
       </div>
       
-      <!-- Upload success message -->
-      <div *ngIf="uploadSuccess && !uploadErrors.length" class="success-message">
-        Users uploaded successfully!
+      <div class="success-message" *ngIf="uploadSuccess && !uploadErrors.length">
+        Users imported successfully!
       </div>
       
-      <!-- Upload errors -->
-      <div *ngIf="uploadErrors.length > 0" class="error-container">
-        <h3>The following errors occurred:</h3>
-        <ul class="error-list">
-          <li *ngFor="let error of uploadErrors" class="error-item" [innerHTML]="error"></li>
+      <div class="error-container" *ngIf="uploadErrors.length">
+        <strong>The following errors occurred:</strong>
+        <ul>
+          <li *ngFor="let error of uploadErrors">{{ error }}</li>
         </ul>
       </div>
     </div>
-    
-    <button (click)="goBack()" class="back-button">Back</button>
   </div>
 </div>

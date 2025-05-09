@@ -40,7 +40,8 @@ export class AuthInterceptor implements HttpInterceptor {
         } else if (err.status === 403) {
           this.router.navigate(['/forbidden']);
         }
-        return throwError('Some thing is wrong');
+        return throwError(() => err);
+        // return throwError('Some thing is wrong');
       })
     );
   }

@@ -31,9 +31,9 @@ export class AddUserComponent implements OnInit {
   
   // Gender options
   genderOptions = [
-    { value: 0, label: 'Male' },
-    { value: 1, label: 'Female' },
-    { value: 2, label: 'Other' }
+    { value: "MALE", label: 'MALE' },
+    { value: "FEMALE", label: 'FEMALE' },
+    { value: "OTHER", label: 'OTHER' }
   ];
   
   // File upload
@@ -53,7 +53,7 @@ export class AddUserComponent implements OnInit {
       userName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      gender: [0, Validators.required],
+      gender: ['MALE', Validators.required],
       address: ['', Validators.required],
       contactNumber: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       pinCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
@@ -139,7 +139,7 @@ export class AddUserComponent implements OnInit {
       userName: this.singleUserForm.get('userName')?.value,
       email: this.singleUserForm.get('email')?.value,
       password: this.singleUserForm.get('password')?.value,
-      gender: parseInt(this.singleUserForm.get('gender')?.value, 10),
+      gender: this.singleUserForm.get('gender')?.value, // no need to parseInt
       address: this.singleUserForm.get('address')?.value,
       contactNumber: this.singleUserForm.get('contactNumber')?.value,
       pinCode: this.singleUserForm.get('pinCode')?.value,
@@ -155,17 +155,31 @@ export class AddUserComponent implements OnInit {
         finalize(() => this.isSubmittingUser = false)
       )
       .subscribe({
-        next: (response) => {
-          this.resetForms();
-          this.currentStep = 'email-verification';
-          // Show success message (you can implement a toast or alert service)
-          alert('User registered successfully!');
+        next: (response: any) => {
+          // Assume success if status is 201 or code === 'register'
+          if (response.status === 201 && response.code === 'register') {
+            this.resetForms();
+            this.currentStep = 'email-verification';
+            alert(response.message || 'User registered successfully!');
+          } else {
+            // Fallback in case success status is wrapped differently
+            alert('User registered successfully!');
+            this.resetForms();
+            this.currentStep = 'email-verification';
+          }
         },
+        
         error: (error) => {
           console.error('Registration error:', error); // Debug log
-          if (error.errors) {
+          
+          if (error.code === 'UserNameExist') {
+            // Specifically handle username already exists error
+            this.userSubmitError = error.message || 'Username already exists. Please choose a different username.';
+          } else if (error.errors && Array.isArray(error.errors)) {
+            // Handle array of errors
             this.userSubmitError = this.formatErrors(error.errors);
           } else {
+            // Handle generic error message
             this.userSubmitError = error.message || 'Failed to register user. Please try again.';
           }
         }
@@ -184,22 +198,25 @@ export class AddUserComponent implements OnInit {
       alert('Please select a file first');
       return;
     }
-    
+  
     this.isUploadingFile = true;
     this.uploadProgress = 0;
     this.uploadErrors = [];
     this.uploadSuccess = false;
-    
+  
     this.userService.uploadUsers(this.selectedFile)
       .pipe(
-        finalize(() => this.isUploadingFile = false)
+        finalize(() => {
+          this.isUploadingFile = false;
+          this.clearFileInput(); // <-- Clear the input after upload finishes
+        })
       )
       .subscribe({
         next: (response: any) => {
           if (response.status === 200) {
             this.uploadSuccess = true;
             this.selectedFile = null;
-            
+  
             if (response.errors && response.errors.length > 0) {
               this.uploadErrors = response.errors;
             } else {
@@ -208,14 +225,28 @@ export class AddUserComponent implements OnInit {
           }
         },
         error: (error) => {
-          if (error.errors) {
-            this.uploadErrors = error.errors;
+          const apiError = error.error || error;
+          if (apiError.errors && Array.isArray(apiError.errors)) {
+            this.uploadErrors = apiError.errors;
+          } else if (typeof apiError === 'string') {
+            this.uploadErrors = [apiError];
+          } else if (apiError.message) {
+            this.uploadErrors = [apiError.message];
           } else {
-            this.uploadErrors = [error.message || 'Failed to upload users. Please try again.'];
+            this.uploadErrors = ['An unknown error occurred during upload.'];
           }
+          this.selectedFile = null;
         }
       });
   }
+  clearFileInput(): void {
+    const fileInput = document.getElementById('bulkFile') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = ''; // Clear the file input
+    }
+    this.selectedFile = null;
+  }
+    
   
   downloadTemplate(): void {
     this.userService.downloadTemplate().subscribe(blob => {

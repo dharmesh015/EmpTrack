@@ -10,6 +10,7 @@ import { AuthGuard } from './_auth/auth.guard';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { AdminProfileComponent } from './admin-profile/admin-profile.component';
+import { AddUserComponent } from './add-user/add-user.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -25,7 +26,7 @@ const routes: Routes = [
   { path: 'forbidden', component: ForbiddenComponent },
 
   { path: 'reset-password', component: ResetPasswordComponent },
-
+  { path: 'adduser', component: AddUserComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'profile', component: AdminProfileComponent },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
