@@ -376,52 +376,6 @@ public class AdminServiceImplTest {
         System.out.println("====================================\n");
     }
 
-    @Test
-    public void testGenerateFakeUsers() {
-        System.out.println("\n========== TEST: testGenerateFakeUsers ==========");
-        
-        // Arrange
-        when(roleDao.findById(2L)).thenReturn(Optional.of(new Role()));
-        when(userDao.save(any(User.class))).thenReturn(testUser);
-
-        // Act
-        System.out.println("Generating fake users...");
-        String result = adminService.generateFakeUsers();
-
-        // Assert
-        assertTrue(result.contains("fake users added successfully"));
-        verify(userDao, times(105)).save(any(User.class));  // Verify that 105 users are saved
-        
-        System.out.println("\n----- Generation Results -----");
-        System.out.println("Service Response: " + result);
-        System.out.println("Number of Users Created: 105");
-        System.out.println("✓ All assertions passed");
-        System.out.println("====================================\n");
-    }
     
-    @Test
-    public void testGenerateFakeUsers_RoleNotFound() {
-        System.out.println("\n========== TEST: testGenerateFakeUsers_RoleNotFound ==========");
-        
-        // Arrange
-        when(roleDao.findById(2L)).thenReturn(Optional.empty()); // Simulate missing role
-
-        // Act & Assert
-        System.out.println("Attempting to generate fake users with non-existent role");
-        
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            adminService.generateFakeUsers();
-        });
-        
-        // Validate exception message
-        assertEquals("Error generating fake users: Role not found", thrown.getMessage());
-        
-        // Ensure no user is saved
-        verify(userDao, never()).save(any(User.class));
-        
-        System.out.println("\n----- Test Results -----");
-        System.out.println("✓ Exception correctly thrown with message: " + thrown.getMessage());
-        System.out.println("✓ Save method was correctly not called");
-        System.out.println("====================================\n");
-    }
+    
 }

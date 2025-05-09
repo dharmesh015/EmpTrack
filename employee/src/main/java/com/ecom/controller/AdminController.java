@@ -53,7 +53,7 @@ public class AdminController {
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) {
         
-    	System.err.println("come");
+    	
         try {
             Sort sort = direction.equalsIgnoreCase("desc") ? 
                 Sort.by(sortBy).descending() : 

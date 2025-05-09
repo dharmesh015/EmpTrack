@@ -518,7 +518,7 @@ public class UserServiceImpl implements UserService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("users_data");
 
-        // Header Row
+        
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Username");
         headerRow.createCell(1).setCellValue("Full Name");
@@ -530,7 +530,7 @@ public class UserServiceImpl implements UserService {
         headerRow.createCell(7).setCellValue("Pin Code");
 
 
-        // Auto-size columns
+        
         for (int i = 0; i < 8; i++) {
             sheet.autoSizeColumn(i);
         }
@@ -554,7 +554,7 @@ public class UserServiceImpl implements UserService {
     public List<String> importUsersFromFile(MultipartFile file) {
         List<User> users = new ArrayList<>();
         List<String> errors = new ArrayList<>();
-        Role userRole = roleDao.findByRoleName("USER").get(); // Fetch USER role
+        Role userRole = roleDao.findByRoleName("USER").get(); 
         if (userRole == null) throw new RuntimeException("USER role not found.");
         
         Set<String> existingUsernames = userDao.findAll().stream()

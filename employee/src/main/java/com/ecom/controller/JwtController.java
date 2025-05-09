@@ -137,13 +137,13 @@ public class JwtController {
     }
     
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmailExists(@RequestBody String email) {
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<?> checkEmailExists(@PathVariable("email") String email) {
         try {
             boolean exists = userService.emailExists(email);
             if (exists) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(HttpStatus.CONFLICT.value(), "Exists", "Email already exists"));
+                return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponse(HttpStatus.OK.value(), "Exists", "Email already exists"));
             } else {
                 return ResponseEntity.ok(
                     new ApiResponse(HttpStatus.OK.value(), "NotAvailable", "Email is Not available"));
